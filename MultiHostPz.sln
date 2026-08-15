@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{261F957D-1D55-43AE-B203-A5B46F4EB945}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MultiHostPz.App", "src\MultiHostPz.App\MultiHostPz.App.csproj", "{A2BCE5A2-199B-4F54-8A95-526952334C13}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{B6D64834-C420-44C8-98B6-40E523E94BF6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MultiHostPz.App.Tests", "tests\MultiHostPz.App.Tests\MultiHostPz.App.Tests.csproj", "{08B9FC16-66BB-45AC-B938-69D61812D14B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A2BCE5A2-199B-4F54-8A95-526952334C13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2BCE5A2-199B-4F54-8A95-526952334C13}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2BCE5A2-199B-4F54-8A95-526952334C13}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2BCE5A2-199B-4F54-8A95-526952334C13}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08B9FC16-66BB-45AC-B938-69D61812D14B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08B9FC16-66BB-45AC-B938-69D61812D14B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08B9FC16-66BB-45AC-B938-69D61812D14B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08B9FC16-66BB-45AC-B938-69D61812D14B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A2BCE5A2-199B-4F54-8A95-526952334C13} = {261F957D-1D55-43AE-B203-A5B46F4EB945}
+		{08B9FC16-66BB-45AC-B938-69D61812D14B} = {B6D64834-C420-44C8-98B6-40E523E94BF6}
+	EndGlobalSection
+EndGlobal

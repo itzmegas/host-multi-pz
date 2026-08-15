@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Subtitle" xml:space="preserve"><value>Diagnóstico local de partidas multijugador de Project Zomboid</value></data>
+  <data name="LanguageLabel" xml:space="preserve"><value>Idioma</value></data>
+  <data name="ProfileRootHeading" xml:space="preserve"><value>Raíz de perfil detectada</value></data>
+  <data name="SavesPathHeading" xml:space="preserve"><value>Ruta de partidas multijugador</value></data>
+  <data name="ProfileExistsLabel" xml:space="preserve"><value>La raíz de perfil existe:</value></data>
+  <data name="Yes" xml:space="preserve"><value>Sí</value></data>
+  <data name="No" xml:space="preserve"><value>No</value></data>
+  <data name="CreateSnapshotButton" xml:space="preserve"><value>Crear instantánea local</value></data>
+  <data name="RestoreButton" xml:space="preserve"><value>Restaurar la última instantánea local</value></data>
+  <data name="SnapshotStatusHeading" xml:space="preserve"><value>Estado de la instantánea local</value></data>
+  <data name="SyncStatusHeading" xml:space="preserve"><value>Estado de sincronización</value></data>
+  <data name="SnapshotNone" xml:space="preserve"><value>Todavía no se creó ninguna instantánea local</value></data>
+  <data name="SyncNone" xml:space="preserve"><value>Todavía no se sincronizó</value></data>
+  <data name="ConfirmRestoreMessage" xml:space="preserve"><value>¿Desea restaurar la última instantánea local válida? Las partidas multijugador actuales se conservarán como una copia de seguridad con marca de tiempo.</value></data>
+  <data name="ConfirmRestoreTitle" xml:space="preserve"><value>Confirmar restauración local</value></data>
+  <data name="SnapshotCreated" xml:space="preserve"><value>Se creó la instantánea local {0} en {1}.</value></data>
+  <data name="SnapshotRunning" xml:space="preserve"><value>La instantánea se bloqueó porque Project Zomboid está en ejecución. Cierre el juego e inténtelo de nuevo.</value></data>
+  <data name="SnapshotSourceMissing" xml:space="preserve"><value>La instantánea falló porque el directorio de partidas multijugador no existe: {0}</value></data>
+  <data name="SnapshotDestinationInsideSource" xml:space="preserve"><value>La instantánea falló porque el destino está dentro del directorio de partidas multijugador.</value></data>
+  <data name="SnapshotFailed" xml:space="preserve"><value>No se pudo crear la instantánea.</value></data>
+  <data name="RestoreCancelled" xml:space="preserve"><value>Se canceló la restauración local.</value></data>
+  <data name="RestoreSucceeded" xml:space="preserve"><value>Se restauró la instantánea {0}. Las partidas anteriores se conservaron en {1}.</value></data>
+  <data name="RestoreRunning" xml:space="preserve"><value>La restauración se bloqueó porque Project Zomboid está en ejecución. Cierre el juego e inténtelo de nuevo.</value></data>
+  <data name="RestoreTargetMissing" xml:space="preserve"><value>La restauración falló porque el directorio de partidas multijugador no existe: {0}</value></data>
+  <data name="RestoreArchiveMissing" xml:space="preserve"><value>La restauración falló porque falta el archivo de la instantánea.</value></data>
+  <data name="RestoreManifestMissing" xml:space="preserve"><value>La restauración falló porque falta el manifiesto de la instantánea.</value></data>
+  <data name="RestoreManifestMalformed" xml:space="preserve"><value>La restauración falló porque la instantánea {0} tiene un manifiesto con formato incorrecto.</value></data>
+  <data name="RestoreUnsupportedFormat" xml:space="preserve"><value>La restauración falló porque la instantánea {0} usa un formato no compatible.</value></data>
+  <data name="RestoreIdentityMismatch" xml:space="preserve"><value>La restauración falló porque las identidades del archivo y el manifiesto de la instantánea {0} no coinciden.</value></data>
+  <data name="RestoreFileCountMismatch" xml:space="preserve"><value>La restauración falló porque la instantánea {0} no coincide con el recuento de archivos de su manifiesto.</value></data>
+  <data name="RestoreByteCountMismatch" xml:space="preserve"><value>La restauración falló porque la instantánea {0} no coincide con el recuento de bytes de su manifiesto.</value></data>
+  <data name="RestoreInvalidZip" xml:space="preserve"><value>La restauración falló porque la instantánea {0} contiene un archivo ZIP o una entrada no válidos.</value></data>
+  <data name="RestoreNoValidSnapshot" xml:space="preserve"><value>La restauración falló porque no se encontró ninguna instantánea local válida.</value></data>
+  <data name="RestoreFailed" xml:space="preserve"><value>No se pudo restaurar la instantánea {0}.</value></data>
+  <data name="RestoreFailedBackup" xml:space="preserve"><value>No se pudo restaurar la instantánea {0}. La copia de seguridad se conservó en {1}.</value></data>
+</root>

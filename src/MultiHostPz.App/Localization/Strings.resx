@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Subtitle" xml:space="preserve"><value>Local Project Zomboid multiplayer save diagnostics</value></data>
+  <data name="LanguageLabel" xml:space="preserve"><value>Language</value></data>
+  <data name="ProfileRootHeading" xml:space="preserve"><value>Detected profile root</value></data>
+  <data name="SavesPathHeading" xml:space="preserve"><value>Multiplayer saves path</value></data>
+  <data name="ProfileExistsLabel" xml:space="preserve"><value>Profile root exists:</value></data>
+  <data name="Yes" xml:space="preserve"><value>Yes</value></data>
+  <data name="No" xml:space="preserve"><value>No</value></data>
+  <data name="CreateSnapshotButton" xml:space="preserve"><value>Create local snapshot</value></data>
+  <data name="RestoreButton" xml:space="preserve"><value>Restore latest local snapshot</value></data>
+  <data name="SnapshotStatusHeading" xml:space="preserve"><value>Local snapshot status</value></data>
+  <data name="SyncStatusHeading" xml:space="preserve"><value>Synchronization status</value></data>
+  <data name="SnapshotNone" xml:space="preserve"><value>No local snapshot created yet</value></data>
+  <data name="SyncNone" xml:space="preserve"><value>Not synchronized yet</value></data>
+  <data name="ConfirmRestoreMessage" xml:space="preserve"><value>Restore the latest valid local snapshot? The current multiplayer saves will be preserved as a timestamped backup.</value></data>
+  <data name="ConfirmRestoreTitle" xml:space="preserve"><value>Confirm local restore</value></data>
+  <data name="SnapshotCreated" xml:space="preserve"><value>Local snapshot {0} was created at {1}.</value></data>
+  <data name="SnapshotRunning" xml:space="preserve"><value>Snapshot blocked because Project Zomboid is running. Close the game and try again.</value></data>
+  <data name="SnapshotSourceMissing" xml:space="preserve"><value>Snapshot failed because the multiplayer saves directory does not exist: {0}</value></data>
+  <data name="SnapshotDestinationInsideSource" xml:space="preserve"><value>Snapshot failed because the destination is inside the multiplayer saves directory.</value></data>
+  <data name="SnapshotFailed" xml:space="preserve"><value>Snapshot failed.</value></data>
+  <data name="RestoreCancelled" xml:space="preserve"><value>Local restore cancelled.</value></data>
+  <data name="RestoreSucceeded" xml:space="preserve"><value>Snapshot {0} was restored. The previous saves were preserved at {1}.</value></data>
+  <data name="RestoreRunning" xml:space="preserve"><value>Restore blocked because Project Zomboid is running. Close the game and try again.</value></data>
+  <data name="RestoreTargetMissing" xml:space="preserve"><value>Restore failed because the multiplayer saves directory does not exist: {0}</value></data>
+  <data name="RestoreArchiveMissing" xml:space="preserve"><value>Restore failed because the snapshot archive is missing.</value></data>
+  <data name="RestoreManifestMissing" xml:space="preserve"><value>Restore failed because the snapshot manifest is missing.</value></data>
+  <data name="RestoreManifestMalformed" xml:space="preserve"><value>Restore failed because snapshot {0} has a malformed manifest.</value></data>
+  <data name="RestoreUnsupportedFormat" xml:space="preserve"><value>Restore failed because snapshot {0} uses an unsupported format.</value></data>
+  <data name="RestoreIdentityMismatch" xml:space="preserve"><value>Restore failed because snapshot {0} has mismatched archive and manifest identities.</value></data>
+  <data name="RestoreFileCountMismatch" xml:space="preserve"><value>Restore failed because snapshot {0} does not match its manifest file count.</value></data>
+  <data name="RestoreByteCountMismatch" xml:space="preserve"><value>Restore failed because snapshot {0} does not match its manifest byte count.</value></data>
+  <data name="RestoreInvalidZip" xml:space="preserve"><value>Restore failed because snapshot {0} contains an invalid ZIP archive or entry.</value></data>
+  <data name="RestoreNoValidSnapshot" xml:space="preserve"><value>Restore failed because no valid local snapshot was found.</value></data>
+  <data name="RestoreFailed" xml:space="preserve"><value>Snapshot {0} could not be restored.</value></data>
+  <data name="RestoreFailedBackup" xml:space="preserve"><value>Snapshot {0} could not be restored. The backup was retained at {1}.</value></data>
+</root>

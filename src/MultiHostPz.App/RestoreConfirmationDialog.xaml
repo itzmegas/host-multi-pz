@@ -1,0 +1,21 @@
+<Window x:Class="MultiHostPz.App.RestoreConfirmationDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        SizeToContent="WidthAndHeight"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+    <Grid Margin="24" MaxWidth="480">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="20" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock x:Name="MessageText" TextWrapping="Wrap" />
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="YesButton" Width="88" IsDefault="True" Click="YesButton_Click" />
+            <Button x:Name="NoButton" Margin="10,0,0,0" Width="88" IsCancel="True" Click="NoButton_Click" />
+        </StackPanel>
+    </Grid>
+</Window>

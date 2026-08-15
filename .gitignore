@@ -1,0 +1,31 @@
+# Build output
+bin/
+obj/
+
+# Visual Studio user state
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Test results and coverage
+TestResults/
+*.trx
+coverage/
+
+# NuGet and local tooling
+packages/
+*.nupkg
+*.snupkg
+artifacts/
+
+# Rider and ReSharper
+.idea/
+*.sln.iml
+_ReSharper*/
+*.DotSettings.user
+
+# OS files
+Thumbs.db
+Desktop.ini
