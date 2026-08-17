@@ -15,12 +15,12 @@ public partial class MainWindow : Window
     private readonly LocalSnapshotRestoreService _snapshotRestoreService;
     private readonly PzSaveLocation _saveLocation;
     private readonly LanguageSettingsStore _settingsStore;
-    private readonly DropboxOAuthClient _dropboxOAuth;
-    private readonly CloudSnapshotTransferService _cloudTransfers;
+    private readonly CloudProviderController _cloudProviders;
+    private readonly string _snapshotsDirectory;
     private LocalizedText _text = new(AppLanguage.English);
     private UiStatus _status = new(UiStatusKind.NoSnapshot);
     private CloudUiStatus _cloudStatus;
-    private bool _cloudBusy;
+    private readonly UiOperationGate _operationGate = new();
     private bool _initialized;
 
     public MainWindow()
@@ -32,24 +32,53 @@ public partial class MainWindow : Window
         _saveLocation = new PzSaveLocator().Locate();
         _settingsStore = new LanguageSettingsStore();
         var http = new HttpClient();
-        _dropboxOAuth = new DropboxOAuthClient(http, new DropboxTokenStore());
-        _cloudTransfers = new CloudSnapshotTransferService(new DropboxSnapshotStore(http, _dropboxOAuth),
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MultiHostPz", "snapshots"));
-        _cloudStatus = !_dropboxOAuth.IsConfigured ? new(CloudStatusKind.NotConfigured)
-            : _dropboxOAuth.Current is { } tokens ? new(CloudStatusKind.Connected, tokens.AccountName ?? "Dropbox")
-            : new(CloudStatusKind.Disconnected);
+        var dropbox = new DropboxCloudProvider(http, new DropboxOAuthClient(http, new DropboxTokenStore()));
+        var google = new GoogleDriveCloudProvider(http, new GoogleOAuthClient(http, new GoogleTokenStore()));
+        _cloudProviders = new([google, dropbox], _settingsStore.LoadCloudProvider());
+        _snapshotsDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MultiHostPz", "snapshots");
+        _cloudStatus = _cloudProviders.CurrentStatus();
 
         ProfileRootText.Text = _saveLocation.ProfileRoot;
         MultiplayerSavesPathText.Text = _saveLocation.MultiplayerSavesPath;
         var language = AppLanguage.Select(CultureInfo.CurrentUICulture, _settingsStore.Load());
         LanguageSelector.SelectedIndex = language == AppLanguage.Spanish ? 1 : 0;
+        CloudProviderSelector.SelectedIndex = _cloudProviders.SelectedKind == CloudProviderKind.GoogleDrive ? 0 : 1;
         _initialized = true;
         ApplyLanguage(language);
     }
 
-    private void CreateSnapshotButton_Click(object sender, RoutedEventArgs e)
+    private void CloudProviderSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        var result = _snapshotService.CreateSnapshot(_saveLocation.MultiplayerSavesPath);
+        if (!_initialized || CloudProviderSelector.SelectedItem is not ComboBoxItem item || item.Tag is not string provider) return;
+        _cloudProviders.Select(CloudProviderSelection.Parse(provider));
+        _cloudStatus = _cloudProviders.CurrentStatus();
+        try { _settingsStore.SaveCloudProvider(_cloudProviders.SelectedKind); }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
+        RenderCloudStatus();
+    }
+
+    private async void CreateSnapshotButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_operationGate.TryBegin(UiOperation.Local)) return;
+
+        _status = new UiStatus(UiStatusKind.CreatingSnapshot);
+        RenderStatus();
+        LocalSnapshotResult result;
+        try
+        {
+            result = await Task.Run(() => _snapshotService.CreateSnapshot(_saveLocation.MultiplayerSavesPath));
+        }
+        catch
+        {
+            result = LocalSnapshotResult.Failure(SnapshotFailureReason.Other, "Snapshot creation failed safely.");
+        }
+        finally
+        {
+            _operationGate.End(UiOperation.Local);
+            LocalOperationProgress.Visibility = Visibility.Collapsed;
+            RenderActionAvailability();
+        }
 
         _status = result.Succeeded
             ? new UiStatus(UiStatusKind.SnapshotCreated, SnapshotId: result.Manifest!.SnapshotId, Path: result.ArchivePath)
@@ -57,8 +86,10 @@ public partial class MainWindow : Window
         RenderStatus();
     }
 
-    private void RestoreLatestSnapshotButton_Click(object sender, RoutedEventArgs e)
+    private async void RestoreLatestSnapshotButton_Click(object sender, RoutedEventArgs e)
     {
+        if (_operationGate.Current != UiOperation.Idle) return;
+
         var confirmation = new RestoreConfirmationDialog(_text)
         {
             Owner = this
@@ -71,8 +102,28 @@ public partial class MainWindow : Window
             return;
         }
 
-        var result = _snapshotRestoreService.RestoreLatestSnapshot(
-            _saveLocation.MultiplayerSavesPath);
+        if (!_operationGate.TryBegin(UiOperation.Local)) return;
+
+        _status = new UiStatus(UiStatusKind.RestoringSnapshot);
+        RenderStatus();
+        LocalSnapshotRestoreResult result;
+        try
+        {
+            result = await Task.Run(() => _snapshotRestoreService.RestoreLatestSnapshot(
+                _saveLocation.MultiplayerSavesPath));
+        }
+        catch
+        {
+            result = LocalSnapshotRestoreResult.Failure(
+                RestoreFailureReason.RestoreFailed,
+                "Snapshot restore failed safely.");
+        }
+        finally
+        {
+            _operationGate.End(UiOperation.Local);
+            LocalOperationProgress.Visibility = Visibility.Collapsed;
+            RenderActionAvailability();
+        }
 
         _status = result.Succeeded
             ? new UiStatus(UiStatusKind.RestoreSucceeded, SnapshotId: result.SnapshotId, Path: result.BackupPath)
@@ -118,11 +169,12 @@ public partial class MainWindow : Window
         SnapshotStatusHeadingText.Text = _text["SnapshotStatusHeading"];
         SyncStatusHeadingText.Text = _text["SyncStatusHeading"];
         SyncStatusText.Text = _text["SyncNone"];
-        DropboxHeadingText.Text = _text["DropboxHeading"];
-        DropboxConnectButton.Content = _text["DropboxConnectButton"];
-        DropboxUploadButton.Content = _text["DropboxUploadButton"];
-        DropboxDownloadButton.Content = _text["DropboxDownloadButton"];
-        DropboxDisconnectButton.Content = _text["DropboxDisconnectButton"];
+        CloudHeadingText.Text = _text["CloudHeading"];
+        CloudProviderLabelText.Text = _text["CloudProviderLabel"];
+        CloudConnectButton.Content = _text["CloudConnectButton"];
+        CloudUploadButton.Content = _text["CloudUploadButton"];
+        CloudDownloadButton.Content = _text["CloudDownloadButton"];
+        CloudDisconnectButton.Content = _text["CloudDisconnectButton"];
         RenderCloudStatus();
         RenderStatus();
     }
@@ -130,46 +182,60 @@ public partial class MainWindow : Window
     private void RenderStatus()
     {
         SnapshotStatusText.Text = _text.Format(_status, _saveLocation.MultiplayerSavesPath);
+        LocalOperationProgress.Visibility = _operationGate.Current == UiOperation.Local
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        RenderActionAvailability();
     }
 
-    private async void DropboxConnectButton_Click(object sender, RoutedEventArgs e) =>
+    private async void CloudConnectButton_Click(object sender, RoutedEventArgs e) =>
         await RunCloudAsync(async ct =>
         {
             _cloudStatus = new(CloudStatusKind.Connecting); RenderCloudStatus();
-            var tokens = await _dropboxOAuth.ConnectAsync(ct);
-            _cloudStatus = new(CloudStatusKind.Connected, tokens.AccountName ?? "Dropbox");
+            var account = await _cloudProviders.Selected.ConnectAsync(ct);
+            _cloudStatus = new(CloudStatusKind.Connected, account ?? _cloudProviders.SelectedKind.ToString());
         });
 
-    private async void DropboxUploadButton_Click(object sender, RoutedEventArgs e) =>
+    private async void CloudUploadButton_Click(object sender, RoutedEventArgs e) =>
         await RunCloudAsync(async ct => _cloudStatus = new(CloudStatusKind.UploadSucceeded,
-            await _cloudTransfers.UploadLatestAsync(ct)));
+            await Transfers().UploadLatestAsync(ct)));
 
-    private async void DropboxDownloadButton_Click(object sender, RoutedEventArgs e) =>
+    private async void CloudDownloadButton_Click(object sender, RoutedEventArgs e) =>
         await RunCloudAsync(async ct => _cloudStatus = new(CloudStatusKind.DownloadSucceeded,
-            await _cloudTransfers.DownloadLatestAsync(ct)));
+            await Transfers().DownloadLatestAsync(ct)));
 
-    private async void DropboxDisconnectButton_Click(object sender, RoutedEventArgs e) =>
-        await RunCloudAsync(async ct => { await _dropboxOAuth.DisconnectAsync(ct); _cloudStatus = new(CloudStatusKind.Disconnected); });
+    private async void CloudDisconnectButton_Click(object sender, RoutedEventArgs e) =>
+        await RunCloudAsync(async ct => { await _cloudProviders.Selected.DisconnectAsync(ct); _cloudStatus = new(CloudStatusKind.Disconnected); });
+
+    private CloudSnapshotTransferService Transfers() => new(_cloudProviders.Selected.SnapshotStore, _snapshotsDirectory);
 
     private async Task RunCloudAsync(Func<CancellationToken, Task> operation)
     {
-        _cloudBusy = true; RenderCloudStatus();
+        if (!_operationGate.TryBegin(UiOperation.Cloud)) return;
+        RenderCloudStatus();
         try { using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(4)); await operation(timeout.Token); }
         catch { _cloudStatus = new(CloudStatusKind.Failed); }
-        finally { _cloudBusy = false; RenderCloudStatus(); }
+        finally { _operationGate.End(UiOperation.Cloud); RenderCloudStatus(); }
     }
 
     private void RenderCloudStatus()
     {
-        DropboxStatusText.Text = _text.Format(_cloudStatus);
-        var connected = _dropboxOAuth.Current is not null;
-        DropboxConnectButton.IsEnabled = CloudActionAvailability.CanConnect(
-            _dropboxOAuth.IsConfigured, connected, _cloudBusy);
-        DropboxUploadButton.IsEnabled = CloudActionAvailability.CanUseConnectedAction(
-            _dropboxOAuth.IsConfigured, connected, _cloudBusy);
-        DropboxDownloadButton.IsEnabled = CloudActionAvailability.CanUseConnectedAction(
-            _dropboxOAuth.IsConfigured, connected, _cloudBusy);
-        DropboxDisconnectButton.IsEnabled = CloudActionAvailability.CanUseConnectedAction(
-            _dropboxOAuth.IsConfigured, connected, _cloudBusy);
+        CloudStatusText.Text = _text.Format(_cloudStatus, _cloudProviders.SelectedKind);
+        RenderActionAvailability();
+    }
+
+    private void RenderActionAvailability()
+    {
+        var availability = UiActionAvailabilityCalculator.Calculate(
+            _cloudProviders.Selected.IsConfigured,
+            _cloudProviders.Selected.IsConnected,
+            _operationGate.Current);
+        CreateSnapshotButton.IsEnabled = availability.CreateSnapshot;
+        RestoreSnapshotButton.IsEnabled = availability.RestoreSnapshot;
+        CloudProviderSelector.IsEnabled = availability.SelectCloudProvider;
+        CloudConnectButton.IsEnabled = availability.ConnectCloud;
+        CloudUploadButton.IsEnabled = availability.UseConnectedCloudAction;
+        CloudDownloadButton.IsEnabled = availability.UseConnectedCloudAction;
+        CloudDisconnectButton.IsEnabled = availability.UseConnectedCloudAction;
     }
 }

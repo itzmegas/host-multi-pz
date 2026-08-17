@@ -20,6 +20,7 @@ packages/
 *.snupkg
 artifacts/
 .codegraph/
+env/
 
 # Rider and ReSharper
 .idea/

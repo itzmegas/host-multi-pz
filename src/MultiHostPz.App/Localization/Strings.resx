@@ -16,6 +16,8 @@
   <data name="SnapshotStatusHeading" xml:space="preserve"><value>Local snapshot status</value></data>
   <data name="SyncStatusHeading" xml:space="preserve"><value>Synchronization status</value></data>
   <data name="SnapshotNone" xml:space="preserve"><value>No local snapshot created yet</value></data>
+  <data name="SnapshotCreating" xml:space="preserve"><value>Creating snapshot...</value></data>
+  <data name="SnapshotRestoring" xml:space="preserve"><value>Restoring snapshot...</value></data>
   <data name="SyncNone" xml:space="preserve"><value>Not synchronized yet</value></data>
   <data name="ConfirmRestoreMessage" xml:space="preserve"><value>Restore the latest valid local snapshot? The current multiplayer saves will be preserved as a timestamped backup.</value></data>
   <data name="ConfirmRestoreTitle" xml:space="preserve"><value>Confirm local restore</value></data>
@@ -51,4 +53,17 @@
   <data name="DropboxUploadButton" xml:space="preserve"><value>Upload latest local</value></data>
   <data name="DropboxDownloadButton" xml:space="preserve"><value>Download latest remote</value></data>
   <data name="DropboxDisconnectButton" xml:space="preserve"><value>Disconnect</value></data>
+  <data name="CloudHeading" xml:space="preserve"><value>Cloud snapshots</value></data>
+  <data name="CloudProviderLabel" xml:space="preserve"><value>Cloud provider</value></data>
+  <data name="CloudConnectButton" xml:space="preserve"><value>Connect</value></data>
+  <data name="CloudUploadButton" xml:space="preserve"><value>Upload latest local</value></data>
+  <data name="CloudDownloadButton" xml:space="preserve"><value>Download latest remote</value></data>
+  <data name="CloudDisconnectButton" xml:space="preserve"><value>Disconnect</value></data>
+  <data name="GoogleDriveNotConfigured" xml:space="preserve"><value>Not configured. Set MULTIHOSTPZ_GOOGLE_CLIENT_SECRETS_PATH to a Desktop OAuth client JSON and restart the app.</value></data>
+  <data name="GoogleDriveDisconnected" xml:space="preserve"><value>Google Drive is disconnected</value></data>
+  <data name="GoogleDriveConnecting" xml:space="preserve"><value>Connecting to Google Drive in your browser...</value></data>
+  <data name="GoogleDriveConnected" xml:space="preserve"><value>Google Drive connected as {0}</value></data>
+  <data name="GoogleDriveUploadSucceeded" xml:space="preserve"><value>Uploaded local snapshot {0} to Google Drive.</value></data>
+  <data name="GoogleDriveDownloadSucceeded" xml:space="preserve"><value>Downloaded Google Drive snapshot {0} locally. Use the explicit restore action when ready.</value></data>
+  <data name="GoogleDriveFailed" xml:space="preserve"><value>The Google Drive operation failed safely. Try again.</value></data>
 </root>

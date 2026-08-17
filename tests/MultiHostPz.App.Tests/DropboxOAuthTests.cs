@@ -50,6 +50,25 @@ public sealed class DropboxOAuthTests
         Assert.Equal("refresh-value", store.Load()!.RefreshToken);
     }
 
+    [Fact]
+    public async Task Completion_AccountLookupFailureStillPersistsFallbackConnection()
+    {
+        using var directory = new TestDirectory();
+        var store = new DropboxTokenStore(directory.Path, new ReversingProtector());
+        var http = new HttpClient(new StubHandler(request => Task.FromResult(request.RequestUri!.Host == "api.dropbox.com"
+            ? Json(HttpStatusCode.OK, "{\"access_token\":\"access\",\"refresh_token\":\"refresh\",\"expires_in\":3600}")
+            : Json(HttpStatusCode.ServiceUnavailable, "{}"))));
+
+        var result = await new DropboxOAuthClient(http, store, "app-key")
+            .CompleteAuthorizationAsync(Query("state", "code"), "state", "verifier", default);
+
+        Assert.Equal("Dropbox", result.AccountName);
+        Assert.Equal(result, store.Load());
+    }
+
+    private static System.Collections.Specialized.NameValueCollection Query(string state, string code) =>
+        new() { ["state"] = state, ["code"] = code };
+
     private static HttpResponseMessage Json(HttpStatusCode status, string json) =>
         new(status) { Content = new StringContent(json, Encoding.UTF8, "application/json") };
 

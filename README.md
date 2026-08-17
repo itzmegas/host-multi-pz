@@ -11,7 +11,7 @@ The first work unit provides a .NET 8 WPF application that:
 - Reports whether the local profile root currently exists.
 - Clearly reports that synchronization has not happened yet.
 
-The application now has bounded Dropbox snapshot upload/download. It does not lock hosts or resolve conflicts.
+The application now has bounded Google Drive and Dropbox snapshot upload/download. Google Drive is the default provider; Dropbox remains selectable and functional. It does not lock hosts or resolve conflicts.
 
 ## Local snapshot preparation
 
@@ -32,24 +32,38 @@ The `Restore latest local snapshot` action restores the newest valid local snaps
 - The extracted directory replaces the target. If replacement fails, the original target is rolled back from the retained backup.
 - Missing, malformed, mismatched, unsupported, or unsafe snapshot inputs leave the current target untouched.
 
-## Dropbox App Folder setup
+## Google Drive setup (default)
+
+1. In the [Google Cloud Console](https://console.cloud.google.com/), create or select a project.
+2. Open **APIs & Services > Library**, find **Google Drive API**, and enable it.
+3. Configure the OAuth consent screen. Keep the app in testing while developing and add each Google account that will connect as a test user when Google requires it.
+4. Open **APIs & Services > Credentials**, create an OAuth client ID with application type **Desktop app**, and download its JSON file.
+5. Set `MULTIHOSTPZ_GOOGLE_CLIENT_SECRETS_PATH` to the full local path of that downloaded JSON file, then restart MultiHostPz.
+
+Do not rename or edit the downloaded credential fields. MultiHostPz reads only `installed.client_id` and `installed.client_secret`. A desktop client secret identifies the installed-app configuration but cannot be kept confidential in a desktop application, so protect the JSON as local configuration and never commit or distribute it. The release contains no Google credentials.
+
+Google authorization opens the system browser and uses authorization-code PKCE, a random-state check, a dynamic `127.0.0.1` loopback redirect, offline access, and encrypted refresh-token storage. Desktop OAuth clients support this dynamic loopback flow; no web-app redirect URI registration is needed. Tokens are encrypted for the current Windows user with DPAPI in `%LOCALAPPDATA%\MultiHostPz\google-drive.tokens`. Disconnect attempts to revoke the Google grant and always removes local Google token state.
+
+MultiHostPz requests only the non-sensitive `https://www.googleapis.com/auth/drive.file` scope. It can therefore manage only files and folders created by MultiHostPz or explicitly opened/shared with it, not arbitrary Drive content. It creates a visible `MultiHostPz/snapshots` folder in My Drive. Do not manually duplicate or rename managed folders/files: ambiguous names fail safely instead of selecting an arbitrary file.
+
+## Dropbox setup
 
 1. In the Dropbox App Console, create a scoped-access app with **App folder** access.
 2. Enable only `account_info.read`, `files.metadata.read`, `files.content.read`, and `files.content.write`.
 3. Register the exact redirect URI `http://127.0.0.1:53682/oauth/callback/`.
 4. Set the non-secret app key in the `MULTIHOSTPZ_DROPBOX_APP_KEY` environment variable, then restart MultiHostPz. Do not configure or distribute a client secret.
 
-The desktop authorization flow uses authorization-code PKCE and requests offline access. Refresh and access tokens are encrypted for the current Windows user with DPAPI under `%LOCALAPPDATA%\MultiHostPz`.
+The Dropbox desktop authorization flow uses authorization-code PKCE and requests offline access. Refresh and access tokens are encrypted for the current Windows user with DPAPI in `%LOCALAPPDATA%\MultiHostPz\dropbox.tokens`, isolated from Google token state.
 
 Dropbox stores paired ZIP and JSON files under the app-relative `/snapshots` folder. Upload writes the ZIP first and manifest last. Download stages and validates the selected latest valid pair before atomically publishing it into the local snapshots directory; it never restores automatically. Use the existing explicit local restore action afterward.
 
-Host locking, conflict prevention, automatic restore, and multi-writer coordination are not implemented yet.
+Both providers publish the ZIP first and the JSON manifest last. Google Drive uses bounded resumable chunks; both providers stream archive downloads into staging. A download is validated and published only into the local snapshots directory and never restores automatically. Host locking, conflict prevention, automatic restore, and multi-writer coordination are not implemented yet.
 
 ## Languages and settings
 
 The interface supports English and neutral Spanish. Use the visible language selector to update all current labels and statuses immediately; subsequent confirmation dialogs use the selected language without restarting the application. On first use, Spanish is selected for a Spanish system UI culture; all other cultures use English.
 
-An explicit language choice is saved atomically in `%LOCALAPPDATA%\MultiHostPz\settings.json` and takes precedence over the system UI culture. Missing, malformed, unreadable, or unsupported settings fall back to the system UI culture.
+Explicit language and cloud-provider choices are saved atomically in `%LOCALAPPDATA%\MultiHostPz\settings.json`. The language choice takes precedence over the system UI culture. A missing or invalid provider choice defaults to Google Drive; Dropbox remains available in the provider selector.
 
 ## Build and test
 
@@ -69,8 +83,8 @@ Publish the repeatable release profile from the repository root:
 dotnet publish src/MultiHostPz.App/MultiHostPz.App.csproj --configuration Release -p:PublishProfile=win-x64
 ```
 
-The complete publish payload is written to `artifacts/MultiHostPz-0.1.0-win-x64/publish/`. Run `MultiHostPz.exe` from that directory, or extract `artifacts/MultiHostPz-0.1.0-win-x64.zip` and run it there. Keep every extracted file together so the Spanish resources remain available.
+The complete publish payload is written to `artifacts/MultiHostPz-0.1.0-win-x64/publish/`. Run `MultiHostPz.exe` from that directory, or extract `artifacts/MultiHostPz-0.1.0-win-x64.zip` and run it there. The single-file executable contains the localized resources.
 
-Local snapshot and restore work without Dropbox configuration. Dropbox features still require `MULTIHOSTPZ_DROPBOX_APP_KEY` to be set in the launching user's environment; the key is not embedded in the release. Version `0.1.0` does not provide host locking, conflict prevention, or multi-writer coordination.
+Local snapshot and restore work without cloud configuration. Google Drive actions require `MULTIHOSTPZ_GOOGLE_CLIENT_SECRETS_PATH`; Dropbox actions require `MULTIHOSTPZ_DROPBOX_APP_KEY`. Neither provider's configuration is embedded in the release. Version `0.1.0` does not provide host locking, conflict prevention, or multi-writer coordination.
 
 The release is unsigned and has no installer or MSIX package. Windows SmartScreen may therefore warn before the executable runs.

@@ -50,19 +50,44 @@ public sealed class DropboxOAuthClient
         });
         Process.Start(new ProcessStartInfo(authorization) { UseShellExecute = true });
         var context = await listener.GetContextAsync().WaitAsync(TimeSpan.FromMinutes(3), cancellationToken);
-        var query = context.Request.QueryString;
-        var responseBytes = Encoding.UTF8.GetBytes("Authorization received. You can close this window.");
-        context.Response.ContentLength64 = responseBytes.Length;
-        await context.Response.OutputStream.WriteAsync(responseBytes, cancellationToken);
-        context.Response.Close();
-        if (!DropboxPkce.StateMatches(state, query["state"] ?? string.Empty) || string.IsNullOrWhiteSpace(query["code"]))
+        DropboxTokens tokens;
+        try
+        {
+            tokens = await CompleteAuthorizationAsync(context.Request.QueryString, state, verifier, cancellationToken);
+        }
+        catch
+        {
+            try { await OAuthLoopbackResponse.WriteAsync(context.Response, OAuthLoopbackResult.Failure()); }
+            catch { context.Response.Close(); }
+            throw new InvalidOperationException("Dropbox authorization failed safely.");
+        }
+        try { await OAuthLoopbackResponse.WriteAsync(context.Response, OAuthLoopbackResult.Success("Dropbox")); }
+        catch { context.Response.Close(); }
+        return tokens;
+    }
+
+    public async Task<DropboxTokens> CompleteAuthorizationAsync(System.Collections.Specialized.NameValueCollection query,
+        string expectedState, string verifier, CancellationToken cancellationToken)
+    {
+        if (!IsConfigured) throw new InvalidOperationException("Dropbox is not configured.");
+        if (!DropboxPkce.StateMatches(expectedState, query["state"] ?? string.Empty) ||
+            !string.IsNullOrWhiteSpace(query["error"]) || string.IsNullOrWhiteSpace(query["code"]))
             throw new InvalidOperationException("Dropbox authorization response was invalid.");
+
+        var previousAccount = Current?.AccountName;
         var tokens = await ExchangeAsync(new Dictionary<string, string>
         {
             ["code"] = query["code"]!, ["grant_type"] = "authorization_code", ["client_id"] = _appKey!,
             ["redirect_uri"] = RedirectUri, ["code_verifier"] = verifier
         }, cancellationToken);
-        tokens = tokens with { AccountName = await GetAccountNameAsync(tokens.AccessToken, cancellationToken) };
+        if (string.IsNullOrWhiteSpace(tokens.RefreshToken))
+            throw new InvalidOperationException("Dropbox authorization did not return a refresh token.");
+
+        var accountName = string.IsNullOrWhiteSpace(previousAccount) ? "Dropbox" : previousAccount;
+        try { accountName = await GetAccountNameAsync(tokens.AccessToken, cancellationToken); }
+        catch { }
+        if (string.IsNullOrWhiteSpace(accountName)) accountName = "Dropbox";
+        tokens = tokens with { AccountName = accountName };
         _tokens.Save(tokens);
         return tokens;
     }

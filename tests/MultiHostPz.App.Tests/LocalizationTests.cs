@@ -99,6 +99,18 @@ public sealed class LocalizationTests : IDisposable
         Assert.Contains("manifiesto con formato incorrecto", spanish.Format(failure, @"C:\saves"));
     }
 
+    [Fact]
+    public void Formatter_LocalizesActiveLocalOperations()
+    {
+        var english = new LocalizedText(AppLanguage.English);
+        var spanish = new LocalizedText(AppLanguage.Spanish);
+
+        Assert.Equal("Creating snapshot...", english.Format(new(UiStatusKind.CreatingSnapshot), "unused"));
+        Assert.Equal("Restoring snapshot...", english.Format(new(UiStatusKind.RestoringSnapshot), "unused"));
+        Assert.Equal("Creando instantánea...", spanish.Format(new(UiStatusKind.CreatingSnapshot), "unused"));
+        Assert.Equal("Restaurando instantánea...", spanish.Format(new(UiStatusKind.RestoringSnapshot), "unused"));
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_temporaryDirectory))

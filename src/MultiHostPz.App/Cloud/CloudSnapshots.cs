@@ -4,7 +4,8 @@ using MultiHostPz.App.Services;
 
 namespace MultiHostPz.App.Cloud;
 
-public sealed record CloudSnapshot(string SnapshotId, DateTimeOffset CreatedUtc, string ArchiveName, string ManifestName);
+public sealed record CloudSnapshot(string SnapshotId, DateTimeOffset CreatedUtc, string ArchiveName, string ManifestName,
+    string? ArchiveId = null, string? ManifestId = null);
 
 public static class CloudActionAvailability
 {
