@@ -39,4 +39,16 @@
   <data name="RestoreNoValidSnapshot" xml:space="preserve"><value>Restore failed because no valid local snapshot was found.</value></data>
   <data name="RestoreFailed" xml:space="preserve"><value>Snapshot {0} could not be restored.</value></data>
   <data name="RestoreFailedBackup" xml:space="preserve"><value>Snapshot {0} could not be restored. The backup was retained at {1}.</value></data>
+  <data name="DropboxHeading" xml:space="preserve"><value>Dropbox App Folder</value></data>
+  <data name="DropboxNotConfigured" xml:space="preserve"><value>Not configured. Set MULTIHOSTPZ_DROPBOX_APP_KEY and restart the app.</value></data>
+  <data name="DropboxDisconnected" xml:space="preserve"><value>Disconnected</value></data>
+  <data name="DropboxConnecting" xml:space="preserve"><value>Connecting in your browser...</value></data>
+  <data name="DropboxConnected" xml:space="preserve"><value>Connected as {0}</value></data>
+  <data name="DropboxUploadSucceeded" xml:space="preserve"><value>Uploaded local snapshot {0}.</value></data>
+  <data name="DropboxDownloadSucceeded" xml:space="preserve"><value>Downloaded snapshot {0} locally. Use the explicit restore action when ready.</value></data>
+  <data name="DropboxFailed" xml:space="preserve"><value>The Dropbox operation failed safely. Try again.</value></data>
+  <data name="DropboxConnectButton" xml:space="preserve"><value>Connect Dropbox</value></data>
+  <data name="DropboxUploadButton" xml:space="preserve"><value>Upload latest local</value></data>
+  <data name="DropboxDownloadButton" xml:space="preserve"><value>Download latest remote</value></data>
+  <data name="DropboxDisconnectButton" xml:space="preserve"><value>Disconnect</value></data>
 </root>

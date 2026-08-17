@@ -106,6 +106,13 @@ public sealed record UiStatus(
     string? SnapshotId = null,
     string? Path = null);
 
+public enum CloudStatusKind
+{
+    NotConfigured, Disconnected, Connecting, Connected, UploadSucceeded, DownloadSucceeded, Failed
+}
+
+public sealed record CloudUiStatus(CloudStatusKind Kind, string? Value = null);
+
 public sealed class LocalizedText
 {
     private static readonly ResourceManager Resources = new(
@@ -131,6 +138,17 @@ public sealed class LocalizedText
         UiStatusKind.RestoreSucceeded => Format("RestoreSucceeded", status.SnapshotId, status.Path),
         UiStatusKind.RestoreFailed => FormatRestoreFailure(status, savesPath),
         _ => throw new ArgumentOutOfRangeException(nameof(status))
+    };
+
+    public string Format(CloudUiStatus status) => status.Kind switch
+    {
+        CloudStatusKind.NotConfigured => this["DropboxNotConfigured"],
+        CloudStatusKind.Disconnected => this["DropboxDisconnected"],
+        CloudStatusKind.Connecting => this["DropboxConnecting"],
+        CloudStatusKind.Connected => Format("DropboxConnected", status.Value),
+        CloudStatusKind.UploadSucceeded => Format("DropboxUploadSucceeded", status.Value),
+        CloudStatusKind.DownloadSucceeded => Format("DropboxDownloadSucceeded", status.Value),
+        _ => this["DropboxFailed"]
     };
 
     private string FormatSnapshotFailure(SnapshotFailureReason reason, string savesPath) => reason switch

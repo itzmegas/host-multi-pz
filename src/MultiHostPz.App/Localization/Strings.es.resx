@@ -39,4 +39,16 @@
   <data name="RestoreNoValidSnapshot" xml:space="preserve"><value>La restauración falló porque no se encontró ninguna instantánea local válida.</value></data>
   <data name="RestoreFailed" xml:space="preserve"><value>No se pudo restaurar la instantánea {0}.</value></data>
   <data name="RestoreFailedBackup" xml:space="preserve"><value>No se pudo restaurar la instantánea {0}. La copia de seguridad se conservó en {1}.</value></data>
+  <data name="DropboxHeading" xml:space="preserve"><value>Carpeta de aplicación de Dropbox</value></data>
+  <data name="DropboxNotConfigured" xml:space="preserve"><value>Sin configurar. Defina MULTIHOSTPZ_DROPBOX_APP_KEY y reinicie la aplicación.</value></data>
+  <data name="DropboxDisconnected" xml:space="preserve"><value>Desconectado</value></data>
+  <data name="DropboxConnecting" xml:space="preserve"><value>Conectando en el navegador...</value></data>
+  <data name="DropboxConnected" xml:space="preserve"><value>Conectado como {0}</value></data>
+  <data name="DropboxUploadSucceeded" xml:space="preserve"><value>Se cargó la instantánea local {0}.</value></data>
+  <data name="DropboxDownloadSucceeded" xml:space="preserve"><value>Se descargó localmente la instantánea {0}. Use la acción explícita de restauración cuando esté listo.</value></data>
+  <data name="DropboxFailed" xml:space="preserve"><value>La operación de Dropbox falló de forma segura. Inténtelo de nuevo.</value></data>
+  <data name="DropboxConnectButton" xml:space="preserve"><value>Conectar Dropbox</value></data>
+  <data name="DropboxUploadButton" xml:space="preserve"><value>Subir la última local</value></data>
+  <data name="DropboxDownloadButton" xml:space="preserve"><value>Descargar la última remota</value></data>
+  <data name="DropboxDisconnectButton" xml:space="preserve"><value>Desconectar</value></data>
 </root>
