@@ -19,6 +19,11 @@ packages/
 *.nupkg
 *.snupkg
 artifacts/
+.codegraph/
+env/
+
+# Local code-signing material (private key backups)
+signing/
 
 # Rider and ReSharper
 .idea/

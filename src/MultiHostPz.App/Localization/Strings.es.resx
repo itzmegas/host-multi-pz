@@ -16,6 +16,8 @@
   <data name="SnapshotStatusHeading" xml:space="preserve"><value>Estado de la instantánea local</value></data>
   <data name="SyncStatusHeading" xml:space="preserve"><value>Estado de sincronización</value></data>
   <data name="SnapshotNone" xml:space="preserve"><value>Todavía no se creó ninguna instantánea local</value></data>
+  <data name="SnapshotCreating" xml:space="preserve"><value>Creando instantánea...</value></data>
+  <data name="SnapshotRestoring" xml:space="preserve"><value>Restaurando instantánea...</value></data>
   <data name="SyncNone" xml:space="preserve"><value>Todavía no se sincronizó</value></data>
   <data name="ConfirmRestoreMessage" xml:space="preserve"><value>¿Desea restaurar la última instantánea local válida? Las partidas multijugador actuales se conservarán como una copia de seguridad con marca de tiempo.</value></data>
   <data name="ConfirmRestoreTitle" xml:space="preserve"><value>Confirmar restauración local</value></data>
@@ -39,4 +41,29 @@
   <data name="RestoreNoValidSnapshot" xml:space="preserve"><value>La restauración falló porque no se encontró ninguna instantánea local válida.</value></data>
   <data name="RestoreFailed" xml:space="preserve"><value>No se pudo restaurar la instantánea {0}.</value></data>
   <data name="RestoreFailedBackup" xml:space="preserve"><value>No se pudo restaurar la instantánea {0}. La copia de seguridad se conservó en {1}.</value></data>
+  <data name="DropboxHeading" xml:space="preserve"><value>Carpeta de aplicación de Dropbox</value></data>
+  <data name="DropboxNotConfigured" xml:space="preserve"><value>Sin configurar. Defina MULTIHOSTPZ_DROPBOX_APP_KEY y reinicie la aplicación.</value></data>
+  <data name="DropboxDisconnected" xml:space="preserve"><value>Desconectado</value></data>
+  <data name="DropboxConnecting" xml:space="preserve"><value>Conectando en el navegador...</value></data>
+  <data name="DropboxConnected" xml:space="preserve"><value>Conectado como {0}</value></data>
+  <data name="DropboxUploadSucceeded" xml:space="preserve"><value>Se cargó la instantánea local {0}.</value></data>
+  <data name="DropboxDownloadSucceeded" xml:space="preserve"><value>Se descargó localmente la instantánea {0}. Use la acción explícita de restauración cuando esté listo.</value></data>
+  <data name="DropboxFailed" xml:space="preserve"><value>La operación de Dropbox falló de forma segura. Inténtelo de nuevo.</value></data>
+  <data name="DropboxConnectButton" xml:space="preserve"><value>Conectar Dropbox</value></data>
+  <data name="DropboxUploadButton" xml:space="preserve"><value>Subir la última local</value></data>
+  <data name="DropboxDownloadButton" xml:space="preserve"><value>Descargar la última remota</value></data>
+  <data name="DropboxDisconnectButton" xml:space="preserve"><value>Desconectar</value></data>
+  <data name="CloudHeading" xml:space="preserve"><value>Instantáneas en la nube</value></data>
+  <data name="CloudProviderLabel" xml:space="preserve"><value>Proveedor de nube</value></data>
+  <data name="CloudConnectButton" xml:space="preserve"><value>Conectar</value></data>
+  <data name="CloudUploadButton" xml:space="preserve"><value>Subir la última local</value></data>
+  <data name="CloudDownloadButton" xml:space="preserve"><value>Descargar la última remota</value></data>
+  <data name="CloudDisconnectButton" xml:space="preserve"><value>Desconectar</value></data>
+  <data name="GoogleDriveNotConfigured" xml:space="preserve"><value>Sin configurar. Defina MULTIHOSTPZ_GOOGLE_CLIENT_SECRETS_PATH con la ruta a un JSON de cliente OAuth de escritorio y reinicie la aplicación.</value></data>
+  <data name="GoogleDriveDisconnected" xml:space="preserve"><value>Google Drive está desconectado</value></data>
+  <data name="GoogleDriveConnecting" xml:space="preserve"><value>Conectando con Google Drive en el navegador...</value></data>
+  <data name="GoogleDriveConnected" xml:space="preserve"><value>Google Drive conectado como {0}</value></data>
+  <data name="GoogleDriveUploadSucceeded" xml:space="preserve"><value>Se subió la instantánea local {0} a Google Drive.</value></data>
+  <data name="GoogleDriveDownloadSucceeded" xml:space="preserve"><value>Se descargó localmente la instantánea {0} de Google Drive. Use la acción explícita de restauración cuando esté listo.</value></data>
+  <data name="GoogleDriveFailed" xml:space="preserve"><value>La operación de Google Drive falló de forma segura. Si conecta otra cuenta, comparta la carpeta MultiHostPz y vuelva a conectar.</value></data>
 </root>

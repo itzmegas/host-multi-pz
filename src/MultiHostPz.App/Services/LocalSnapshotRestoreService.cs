@@ -88,6 +88,14 @@ public sealed class LocalSnapshotRestoreService
         return RestoreValidatedSnapshot(resolvedTargetDirectory, validatedSnapshot!);
     }
 
+    public LocalSnapshotRestoreResult ValidateSnapshot(string? archivePath, string? manifestPath)
+    {
+        return TryValidateSnapshot(archivePath, manifestPath, out var snapshot, out var failure)
+            ? new LocalSnapshotRestoreResult(true, snapshot!.Manifest.SnapshotId, null,
+                RestoreFailureReason.None, "The snapshot is valid.")
+            : failure!;
+    }
+
     public LocalSnapshotRestoreResult RestoreLatestSnapshot(string? targetDirectory)
     {
         if (!TryResolveExistingDirectory(targetDirectory, out var resolvedTargetDirectory))

@@ -2,6 +2,7 @@ using System.Globalization;
 using System.IO;
 using System.Resources;
 using System.Text.Json;
+using MultiHostPz.App.Cloud;
 using MultiHostPz.App.Services;
 
 namespace MultiHostPz.App.Localization;
@@ -44,20 +45,11 @@ public sealed class LanguageSettingsStore
 
     public string? Load()
     {
-        try
-        {
-            var settings = JsonSerializer.Deserialize<LanguageSettings>(File.ReadAllText(_settingsPath));
-            return settings?.Language is AppLanguage.English or AppLanguage.Spanish
-                ? settings.Language
-                : null;
-        }
-        catch (Exception exception) when (exception is IOException
-                                          or UnauthorizedAccessException
-                                          or JsonException)
-        {
-            return null;
-        }
+        var settings = LoadSettings();
+        return settings?.Language is AppLanguage.English or AppLanguage.Spanish ? settings.Language : null;
     }
+
+    public CloudProviderKind LoadCloudProvider() => CloudProviderSelection.Parse(LoadSettings()?.CloudProvider);
 
     public void Save(string language)
     {
@@ -66,6 +58,23 @@ public sealed class LanguageSettingsStore
             throw new ArgumentOutOfRangeException(nameof(language));
         }
 
+        SaveSettings(new(language, CloudProviderSelection.Serialize(LoadCloudProvider())));
+    }
+
+    public void SaveCloudProvider(CloudProviderKind provider)
+    {
+        var language = Load() ?? AppLanguage.Select(CultureInfo.CurrentUICulture);
+        SaveSettings(new(language, CloudProviderSelection.Serialize(provider)));
+    }
+
+    private LanguageSettings? LoadSettings()
+    {
+        try { return JsonSerializer.Deserialize<LanguageSettings>(File.ReadAllText(_settingsPath)); }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or JsonException) { return null; }
+    }
+
+    private void SaveSettings(LanguageSettings settings)
+    {
         var directory = Path.GetDirectoryName(_settingsPath)!;
         Directory.CreateDirectory(directory);
         var temporaryPath = Path.Combine(directory, $".{SettingsFileName}.{Guid.NewGuid():N}.tmp");
@@ -74,7 +83,7 @@ public sealed class LanguageSettingsStore
         {
             using (var stream = new FileStream(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
             {
-                JsonSerializer.Serialize(stream, new LanguageSettings(language));
+                JsonSerializer.Serialize(stream, settings);
                 stream.Flush(flushToDisk: true);
             }
 
@@ -86,12 +95,14 @@ public sealed class LanguageSettingsStore
         }
     }
 
-    private sealed record LanguageSettings(string Language);
+    private sealed record LanguageSettings(string Language, string? CloudProvider = null);
 }
 
 public enum UiStatusKind
 {
     NoSnapshot,
+    CreatingSnapshot,
+    RestoringSnapshot,
     RestoreCancelled,
     SnapshotCreated,
     SnapshotFailed,
@@ -105,6 +116,13 @@ public sealed record UiStatus(
     RestoreFailureReason RestoreFailure = RestoreFailureReason.None,
     string? SnapshotId = null,
     string? Path = null);
+
+public enum CloudStatusKind
+{
+    NotConfigured, Disconnected, Connecting, Connected, UploadSucceeded, DownloadSucceeded, Failed
+}
+
+public sealed record CloudUiStatus(CloudStatusKind Kind, string? Value = null);
 
 public sealed class LocalizedText
 {
@@ -125,6 +143,8 @@ public sealed class LocalizedText
     public string Format(UiStatus status, string savesPath) => status.Kind switch
     {
         UiStatusKind.NoSnapshot => this["SnapshotNone"],
+        UiStatusKind.CreatingSnapshot => this["SnapshotCreating"],
+        UiStatusKind.RestoringSnapshot => this["SnapshotRestoring"],
         UiStatusKind.RestoreCancelled => this["RestoreCancelled"],
         UiStatusKind.SnapshotCreated => Format("SnapshotCreated", status.SnapshotId, status.Path),
         UiStatusKind.SnapshotFailed => FormatSnapshotFailure(status.SnapshotFailure, savesPath),
@@ -132,6 +152,23 @@ public sealed class LocalizedText
         UiStatusKind.RestoreFailed => FormatRestoreFailure(status, savesPath),
         _ => throw new ArgumentOutOfRangeException(nameof(status))
     };
+
+    public string Format(CloudUiStatus status, CloudProviderKind provider)
+    {
+        var prefix = provider == CloudProviderKind.GoogleDrive ? "GoogleDrive" : "Dropbox";
+        return status.Kind switch
+        {
+            CloudStatusKind.NotConfigured => this[prefix + "NotConfigured"],
+            CloudStatusKind.Disconnected => this[prefix + "Disconnected"],
+            CloudStatusKind.Connecting => this[prefix + "Connecting"],
+            CloudStatusKind.Connected => Format(prefix + "Connected", status.Value),
+            CloudStatusKind.UploadSucceeded => Format(prefix + "UploadSucceeded", status.Value),
+            CloudStatusKind.DownloadSucceeded => Format(prefix + "DownloadSucceeded", status.Value),
+            _ => this[prefix + "Failed"]
+        };
+    }
+
+    public string Format(CloudUiStatus status) => Format(status, CloudProviderKind.Dropbox);
 
     private string FormatSnapshotFailure(SnapshotFailureReason reason, string savesPath) => reason switch
     {

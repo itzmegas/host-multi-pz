@@ -20,6 +20,19 @@ public sealed class LocalizationTests : IDisposable
         Assert.Equal(expected, AppLanguage.Select(CultureInfo.GetCultureInfo(culture)));
     }
 
+    [Theory]
+    [InlineData("es-MX", "en", "en")]
+    [InlineData("en-US", "es", "es")]
+    public void Select_ExplicitLanguageOverridesSystemCulture(
+        string culture,
+        string savedLanguage,
+        string expected)
+    {
+        Assert.Equal(expected, AppLanguage.Select(
+            CultureInfo.GetCultureInfo(culture),
+            savedLanguage));
+    }
+
     [Fact]
     public void SettingsStore_RoundTripsExplicitLanguage()
     {
@@ -42,6 +55,20 @@ public sealed class LocalizationTests : IDisposable
         Assert.Null(store.Load());
         Assert.Equal(AppLanguage.Spanish, AppLanguage.Select(
             CultureInfo.GetCultureInfo("es-MX"), store.Load()));
+    }
+
+    [Fact]
+    public void SettingsStore_UnsupportedLanguageReturnsNoChoice()
+    {
+        Directory.CreateDirectory(_temporaryDirectory);
+        File.WriteAllText(
+            Path.Combine(_temporaryDirectory, "settings.json"),
+            "{\"Language\":\"fr\"}");
+        var store = new LanguageSettingsStore(_temporaryDirectory);
+
+        Assert.Null(store.Load());
+        Assert.Equal(AppLanguage.English, AppLanguage.Select(
+            CultureInfo.GetCultureInfo("fr-FR"), store.Load()));
     }
 
     [Fact]
@@ -70,6 +97,18 @@ public sealed class LocalizationTests : IDisposable
             spanish.Format(success, @"C:\saves"));
         Assert.Contains("malformed manifest", english.Format(failure, @"C:\saves"));
         Assert.Contains("manifiesto con formato incorrecto", spanish.Format(failure, @"C:\saves"));
+    }
+
+    [Fact]
+    public void Formatter_LocalizesActiveLocalOperations()
+    {
+        var english = new LocalizedText(AppLanguage.English);
+        var spanish = new LocalizedText(AppLanguage.Spanish);
+
+        Assert.Equal("Creating snapshot...", english.Format(new(UiStatusKind.CreatingSnapshot), "unused"));
+        Assert.Equal("Restoring snapshot...", english.Format(new(UiStatusKind.RestoringSnapshot), "unused"));
+        Assert.Equal("Creando instantánea...", spanish.Format(new(UiStatusKind.CreatingSnapshot), "unused"));
+        Assert.Equal("Restaurando instantánea...", spanish.Format(new(UiStatusKind.RestoringSnapshot), "unused"));
     }
 
     public void Dispose()
