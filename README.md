@@ -100,4 +100,27 @@ The complete publish payload is written to `artifacts/MultiHostPz-0.1.0-win-x64/
 
 Local snapshot and restore work without cloud configuration. Google Drive actions require either the embedded build configuration or `MULTIHOSTPZ_GOOGLE_CLIENT_SECRETS_PATH`; Dropbox actions require `MULTIHOSTPZ_DROPBOX_APP_KEY`. Version `0.1.0` does not provide host locking, conflict prevention, or multi-writer coordination.
 
-The release is unsigned and has no installer or MSIX package. Windows SmartScreen may therefore warn before the executable runs.
+### Self-signed code signing (friends and private use)
+
+The release can be signed with a reusable self-signed code-signing certificate so Windows shows `MultiHostPz` as the verified publisher after friends install the certificate once. Signing does not require a paid certificate or the Windows SDK build tools beyond `signtool.exe`, which ships with the Windows SDK.
+
+Sign the published executable and regenerate the ZIP from the repository root:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\sign-selfsigned.ps1
+```
+
+The script:
+
+1. Reuses the self-signed code-signing certificate for subject `MultiHostPz` from the current user's certificate store, creating it with 10 years of validity on first run.
+2. Backs up the private key as `signing\MultiHostPz.pfx` and generates `signing\MultiHostPz.pfx.password.txt` (both are git-ignored). Keep this backup private; losing it means friends must trust a new certificate.
+3. Exports the public certificate to `artifacts\MultiHostPz-0.1.0-win-x64.cer` for distribution.
+4. Signs `artifacts\MultiHostPz-0.1.0-win-x64\publish\MultiHostPz.exe` with SHA-256 and an RFC3161 timestamp, verifies the signature, and rebuilds the ZIP so it contains only the signed executable.
+
+Friends install the certificate once as a trusted root before the signature is accepted as `Valid`:
+
+```powershell
+certutil -addstore -user Root MultiHostPz-0.1.0-win-x64.cer
+```
+
+The certificate is self-signed, so this is trust between you and the people you share it with. SmartScreen may still show a prompt for a downloaded file even when the signature is valid; the publisher shown is `MultiHostPz`. Do not share `signing\` (it contains the private key). If the certificate is ever replaced, every friend must remove the old root and install the new one.
