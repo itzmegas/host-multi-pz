@@ -13,24 +13,49 @@ public sealed record GoogleClientCredentials(string ClientId, string ClientSecre
 
 public static class GoogleClientCredentialsLoader
 {
+    private const string EmbeddedResourceName = "MultiHostPz.App.google-client-secrets.json";
+
     public static GoogleClientCredentials? Load(string? path = null)
     {
         path ??= Environment.GetEnvironmentVariable("MULTIHOSTPZ_GOOGLE_CLIENT_SECRETS_PATH");
-        if (string.IsNullOrWhiteSpace(path)) return null;
+        if (!string.IsNullOrWhiteSpace(path))
+        {
+            return LoadFile(path);
+        }
+
+        return LoadEmbedded();
+    }
+
+    private static GoogleClientCredentials? LoadFile(string path)
+    {
         try
         {
             using var document = JsonDocument.Parse(File.ReadAllBytes(Path.GetFullPath(path)));
-            var installed = document.RootElement.GetProperty("installed");
-            var clientId = installed.GetProperty("client_id").GetString();
-            var clientSecret = installed.GetProperty("client_secret").GetString();
-            return string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(clientSecret)
-                ? null
-                : new(clientId, clientSecret);
+            return Parse(document);
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException or KeyNotFoundException or InvalidOperationException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException or KeyNotFoundException or InvalidOperationException) { return null; }
+    }
+
+    private static GoogleClientCredentials? LoadEmbedded()
+    {
+        try
         {
-            return null;
+            using var stream = typeof(GoogleClientCredentialsLoader).Assembly.GetManifestResourceStream(EmbeddedResourceName);
+            if (stream is null) return null;
+            using var document = JsonDocument.Parse(stream);
+            return Parse(document);
         }
+        catch (Exception ex) when (ex is IOException or JsonException or KeyNotFoundException or InvalidOperationException) { return null; }
+    }
+
+    private static GoogleClientCredentials? Parse(JsonDocument document)
+    {
+        var installed = document.RootElement.GetProperty("installed");
+        var clientId = installed.GetProperty("client_id").GetString();
+        var clientSecret = installed.GetProperty("client_secret").GetString();
+        return string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(clientSecret)
+            ? null
+            : new(clientId, clientSecret);
     }
 }
 

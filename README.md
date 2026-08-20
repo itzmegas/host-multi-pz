@@ -40,7 +40,18 @@ The `Restore latest local snapshot` action restores the newest valid local snaps
 4. Open **APIs & Services > Credentials**, create an OAuth client ID with application type **Desktop app**, and download its JSON file.
 5. Set `MULTIHOSTPZ_GOOGLE_CLIENT_SECRETS_PATH` to the full local path of that downloaded JSON file, then restart MultiHostPz.
 
-Do not rename or edit the downloaded credential fields. MultiHostPz reads only `installed.client_id` and `installed.client_secret`. A desktop client secret identifies the installed-app configuration but cannot be kept confidential in a desktop application, so protect the JSON as local configuration and never commit or distribute it. The release contains no Google credentials.
+Do not rename or edit the downloaded credential fields. MultiHostPz reads only `installed.client_id` and `installed.client_secret`. A desktop client secret identifies the installed-app configuration but cannot be kept confidential in a desktop application. The normal repository release contains no Google credentials.
+
+### Release with credentials embedded
+
+To build a private EXE that already contains the Desktop OAuth configuration, keep the downloaded JSON outside Git and publish with its path:
+
+```powershell
+$env:MULTIHOSTPZ_GOOGLE_CLIENT_SECRETS_PATH = 'C:\private\client_secret.json'
+dotnet publish src/MultiHostPz.App/MultiHostPz.App.csproj --configuration Release -p:PublishProfile=win-x64
+```
+
+The publish build embeds the JSON as an assembly resource. The resulting single-file EXE does not need the JSON file or the environment variable at runtime. Alternatively, place the file at `env\google-client-secrets.json` before publishing. The embedded client configuration can be extracted from a desktop EXE, so distribute that build only to the intended users and never commit the JSON.
 
 Google authorization opens the system browser and uses authorization-code PKCE, a random-state check, a dynamic `127.0.0.1` loopback redirect, offline access, and encrypted refresh-token storage. Desktop OAuth clients support this dynamic loopback flow; no web-app redirect URI registration is needed. Tokens are encrypted for the current Windows user with DPAPI in `%LOCALAPPDATA%\MultiHostPz\google-drive.tokens`. Disconnect attempts to revoke the Google grant and always removes local Google token state.
 
@@ -85,6 +96,6 @@ dotnet publish src/MultiHostPz.App/MultiHostPz.App.csproj --configuration Releas
 
 The complete publish payload is written to `artifacts/MultiHostPz-0.1.0-win-x64/publish/`. Run `MultiHostPz.exe` from that directory, or extract `artifacts/MultiHostPz-0.1.0-win-x64.zip` and run it there. The single-file executable contains the localized resources.
 
-Local snapshot and restore work without cloud configuration. Google Drive actions require `MULTIHOSTPZ_GOOGLE_CLIENT_SECRETS_PATH`; Dropbox actions require `MULTIHOSTPZ_DROPBOX_APP_KEY`. Neither provider's configuration is embedded in the release. Version `0.1.0` does not provide host locking, conflict prevention, or multi-writer coordination.
+Local snapshot and restore work without cloud configuration. Google Drive actions require either the embedded build configuration or `MULTIHOSTPZ_GOOGLE_CLIENT_SECRETS_PATH`; Dropbox actions require `MULTIHOSTPZ_DROPBOX_APP_KEY`. Version `0.1.0` does not provide host locking, conflict prevention, or multi-writer coordination.
 
 The release is unsigned and has no installer or MSIX package. Windows SmartScreen may therefore warn before the executable runs.
