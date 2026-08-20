@@ -36,7 +36,7 @@ The `Restore latest local snapshot` action restores the newest valid local snaps
 
 1. In the [Google Cloud Console](https://console.cloud.google.com/), create or select a project.
 2. Open **APIs & Services > Library**, find **Google Drive API**, and enable it.
-3. Configure the OAuth consent screen. Keep the app in testing while developing and add each Google account that will connect as a test user when Google requires it.
+3. Configure the OAuth consent screen and add the `https://www.googleapis.com/auth/drive` scope. Keep the app in testing while developing and add each Google account that will connect as a test user when Google requires it.
 4. Open **APIs & Services > Credentials**, create an OAuth client ID with application type **Desktop app**, and download its JSON file.
 5. Set `MULTIHOSTPZ_GOOGLE_CLIENT_SECRETS_PATH` to the full local path of that downloaded JSON file, then restart MultiHostPz.
 
@@ -55,7 +55,9 @@ The publish build embeds the JSON as an assembly resource. The resulting single-
 
 Google authorization opens the system browser and uses authorization-code PKCE, a random-state check, a dynamic `127.0.0.1` loopback redirect, offline access, and encrypted refresh-token storage. Desktop OAuth clients support this dynamic loopback flow; no web-app redirect URI registration is needed. Tokens are encrypted for the current Windows user with DPAPI in `%LOCALAPPDATA%\MultiHostPz\google-drive.tokens`. Disconnect attempts to revoke the Google grant and always removes local Google token state.
 
-MultiHostPz requests only the non-sensitive `https://www.googleapis.com/auth/drive.file` scope. It can therefore manage only files and folders created by MultiHostPz or explicitly opened/shared with it, not arbitrary Drive content. It creates a visible `MultiHostPz/snapshots` folder in My Drive. Do not manually duplicate or rename managed folders/files: ambiguous names fail safely instead of selecting an arbitrary file.
+To synchronize hosts using different Google accounts, share the top-level `MultiHostPz` folder in Google Drive with each other account. The app first finds the managed folder in the current account and then searches accessible shared folders before creating a new one. Each host must disconnect and connect again after upgrading to this version so Google grants the new `drive` scope. The `drive` scope is restricted; keep the OAuth app in testing for private use and register every test account.
+
+MultiHostPz requests the restricted `https://www.googleapis.com/auth/drive` scope so a shared `MultiHostPz/snapshots` folder can be used by multiple Google accounts. It only queries and manages its own folders and files, identified by names and private `appProperties`; it does not display or synchronize unrelated Drive content. Do not manually duplicate or rename managed folders/files: ambiguous names fail safely instead of selecting an arbitrary file.
 
 ## Dropbox setup
 

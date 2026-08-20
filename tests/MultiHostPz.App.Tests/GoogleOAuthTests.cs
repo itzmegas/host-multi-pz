@@ -30,7 +30,7 @@ public sealed class GoogleOAuthTests
         Assert.Equal("S256", query["code_challenge_method"]);
         Assert.Equal("state-value", query["state"]);
         Assert.Equal("offline", query["access_type"]);
-        Assert.Equal(GoogleOAuthClient.DriveFileScope, query["scope"]);
+        Assert.Equal(GoogleOAuthClient.DriveScope, query["scope"]);
         Assert.StartsWith("http://127.0.0.1:", query["redirect_uri"]);
         Assert.True(GooglePkce.StateMatches("same", "same"));
         Assert.False(GooglePkce.StateMatches("same", "other"));

@@ -65,5 +65,5 @@
   <data name="GoogleDriveConnected" xml:space="preserve"><value>Google Drive conectado como {0}</value></data>
   <data name="GoogleDriveUploadSucceeded" xml:space="preserve"><value>Se subió la instantánea local {0} a Google Drive.</value></data>
   <data name="GoogleDriveDownloadSucceeded" xml:space="preserve"><value>Se descargó localmente la instantánea {0} de Google Drive. Use la acción explícita de restauración cuando esté listo.</value></data>
-  <data name="GoogleDriveFailed" xml:space="preserve"><value>La operación de Google Drive falló de forma segura. Inténtelo de nuevo.</value></data>
+  <data name="GoogleDriveFailed" xml:space="preserve"><value>La operación de Google Drive falló de forma segura. Si conecta otra cuenta, comparta la carpeta MultiHostPz y vuelva a conectar.</value></data>
 </root>

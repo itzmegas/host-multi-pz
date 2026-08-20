@@ -65,5 +65,5 @@
   <data name="GoogleDriveConnected" xml:space="preserve"><value>Google Drive connected as {0}</value></data>
   <data name="GoogleDriveUploadSucceeded" xml:space="preserve"><value>Uploaded local snapshot {0} to Google Drive.</value></data>
   <data name="GoogleDriveDownloadSucceeded" xml:space="preserve"><value>Downloaded Google Drive snapshot {0} locally. Use the explicit restore action when ready.</value></data>
-  <data name="GoogleDriveFailed" xml:space="preserve"><value>The Google Drive operation failed safely. Try again.</value></data>
+  <data name="GoogleDriveFailed" xml:space="preserve"><value>The Google Drive operation failed safely. If another account is connecting, share the MultiHostPz folder with it and reconnect.</value></data>
 </root>

@@ -89,6 +89,34 @@ public sealed class GoogleDriveSnapshotStoreTests
     }
 
     [Fact]
+    public async Task List_FindsManagedFolderSharedByAnotherAccount()
+    {
+        var id = Guid.NewGuid().ToString("N");
+        var manifest = JsonSerializer.Serialize(new LocalSnapshotManifest(1, id, DateTimeOffset.UtcNow, "source", 1, 1, $"snapshot-{id}.zip"));
+        var store = CreateStore(request =>
+        {
+            var url = request.RequestUri!.AbsoluteUri;
+            if (url.Contains("name%20%3D%20%27MultiHostPz%27", StringComparison.Ordinal) &&
+                url.Contains("%27root%27%20in%20parents", StringComparison.Ordinal))
+                return Json(HttpStatusCode.OK, "{\"files\":[]}");
+            if (url.Contains("name%20%3D%20%27MultiHostPz%27", StringComparison.Ordinal))
+                return Json(HttpStatusCode.OK, Files("shared-root-id", "MultiHostPz"));
+            if (url.Contains("%27shared-root-id%27%20in%20parents", StringComparison.Ordinal))
+                return Json(HttpStatusCode.OK, Files("shared-snapshots-id", "snapshots"));
+            if (url.Contains("appProperties", StringComparison.Ordinal))
+                return Json(HttpStatusCode.OK, $"{{\"files\":[{{\"id\":\"archive-id\",\"name\":\"snapshot-{id}.zip\",\"appProperties\":{{\"multiHostPz\":\"snapshot\",\"kind\":\"archive\"}}}},{{\"id\":\"manifest-id\",\"name\":\"snapshot-{id}.json\",\"appProperties\":{{\"multiHostPz\":\"snapshot\",\"kind\":\"manifest\"}}}}]}}");
+            if (url.Contains("/files/manifest-id?alt=media", StringComparison.Ordinal))
+                return Json(HttpStatusCode.OK, manifest);
+            throw new InvalidOperationException($"Unexpected request: {url}");
+        });
+
+        var snapshot = Assert.Single(await store.ListAsync(default));
+
+        Assert.Equal("archive-id", snapshot.ArchiveId);
+        Assert.Equal("manifest-id", snapshot.ManifestId);
+    }
+
+    [Fact]
     public async Task Download_StreamsBothFilesToStagedPaths()
     {
         using var directory = new TestDirectory();

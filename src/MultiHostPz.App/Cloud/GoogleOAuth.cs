@@ -70,7 +70,7 @@ public static class GooglePkce
 
 public sealed class GoogleOAuthClient
 {
-    public const string DriveFileScope = "https://www.googleapis.com/auth/drive.file";
+    public const string DriveScope = "https://www.googleapis.com/auth/drive";
     private readonly HttpClient _http;
     private readonly GoogleTokenStore _tokens;
     private readonly GoogleClientCredentials? _credentials;
@@ -90,7 +90,7 @@ public sealed class GoogleOAuthClient
         var values = new Dictionary<string, string>
         {
             ["client_id"] = credentials.ClientId, ["redirect_uri"] = redirectUri, ["response_type"] = "code",
-            ["scope"] = DriveFileScope, ["access_type"] = "offline", ["prompt"] = "consent",
+            ["scope"] = DriveScope, ["access_type"] = "offline", ["prompt"] = "consent",
             ["code_challenge"] = GooglePkce.CreateChallenge(verifier), ["code_challenge_method"] = "S256", ["state"] = state
         };
         return new Uri("https://accounts.google.com/o/oauth2/v2/auth?" + Form(values));

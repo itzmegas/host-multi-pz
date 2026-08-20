@@ -97,6 +97,11 @@ public sealed class GoogleDriveSnapshotStore(HttpClient http, GoogleOAuthClient 
     {
         var query = $"name = '{EscapeQueryValue(name)}' and mimeType = '{FolderMimeType}' and '{EscapeQueryValue(parentId)}' in parents and trashed = false and appProperties has {{ key='multiHostPz' and value='folder' }}";
         var matches = await ListFilesAsync(query, ct);
+        if (matches.Count == 0 && parentId == "root")
+        {
+            var sharedQuery = $"name = '{EscapeQueryValue(name)}' and mimeType = '{FolderMimeType}' and trashed = false and appProperties has {{ key='multiHostPz' and value='folder' }}";
+            matches = await ListFilesAsync(sharedQuery, ct);
+        }
         if (matches.Count > 1) throw new IOException($"Multiple managed Google Drive folders named '{name}' were found.");
         if (matches.Count == 1) return matches[0].Id;
         return await CreateMetadataAsync(new { name, mimeType = FolderMimeType, parents = new[] { parentId }, appProperties = new { multiHostPz = "folder" } }, ct);
