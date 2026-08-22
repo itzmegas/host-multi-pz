@@ -18,6 +18,13 @@
   <data name="SnapshotNone" xml:space="preserve"><value>No local snapshot created yet</value></data>
   <data name="SnapshotCreating" xml:space="preserve"><value>Creating snapshot...</value></data>
   <data name="SnapshotRestoring" xml:space="preserve"><value>Restoring snapshot...</value></data>
+  <data name="OperationInProgress" xml:space="preserve"><value>Working...</value></data>
+  <data name="OperationCreatingSnapshot" xml:space="preserve"><value>Creating local snapshot...</value></data>
+  <data name="OperationRestoringSnapshot" xml:space="preserve"><value>Restoring local snapshot...</value></data>
+  <data name="OperationConnecting" xml:space="preserve"><value>Connecting to cloud...</value></data>
+  <data name="OperationUploading" xml:space="preserve"><value>Uploading snapshot...</value></data>
+  <data name="OperationDownloading" xml:space="preserve"><value>Downloading and restoring snapshot...</value></data>
+  <data name="OperationDisconnecting" xml:space="preserve"><value>Disconnecting...</value></data>
   <data name="SyncNone" xml:space="preserve"><value>Not synchronized yet</value></data>
   <data name="ConfirmRestoreMessage" xml:space="preserve"><value>Restore the latest valid local snapshot? The current multiplayer saves will be preserved as a timestamped backup.</value></data>
   <data name="ConfirmRestoreTitle" xml:space="preserve"><value>Confirm local restore</value></data>

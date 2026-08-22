@@ -18,6 +18,13 @@
   <data name="SnapshotNone" xml:space="preserve"><value>Todavía no se creó ninguna instantánea local</value></data>
   <data name="SnapshotCreating" xml:space="preserve"><value>Creando instantánea...</value></data>
   <data name="SnapshotRestoring" xml:space="preserve"><value>Restaurando instantánea...</value></data>
+  <data name="OperationInProgress" xml:space="preserve"><value>Trabajando...</value></data>
+  <data name="OperationCreatingSnapshot" xml:space="preserve"><value>Creando instantánea local...</value></data>
+  <data name="OperationRestoringSnapshot" xml:space="preserve"><value>Restaurando instantánea local...</value></data>
+  <data name="OperationConnecting" xml:space="preserve"><value>Conectando con la nube...</value></data>
+  <data name="OperationUploading" xml:space="preserve"><value>Subiendo instantánea...</value></data>
+  <data name="OperationDownloading" xml:space="preserve"><value>Descargando y restaurando instantánea...</value></data>
+  <data name="OperationDisconnecting" xml:space="preserve"><value>Desconectando...</value></data>
   <data name="SyncNone" xml:space="preserve"><value>Todavía no se sincronizó</value></data>
   <data name="ConfirmRestoreMessage" xml:space="preserve"><value>¿Desea restaurar la última instantánea local válida? Las partidas multijugador actuales se conservarán como una copia de seguridad con marca de tiempo.</value></data>
   <data name="ConfirmRestoreTitle" xml:space="preserve"><value>Confirmar restauración local</value></data>

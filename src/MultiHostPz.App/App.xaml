@@ -78,46 +78,6 @@
             <Setter Property="Background" Value="{StaticResource CardBorderBrush}" />
         </Style>
 
-        <Style x:Key="IndeterminateProgressStyle" TargetType="ProgressBar">
-            <Setter Property="Height" Value="4" />
-            <Setter Property="IsIndeterminate" Value="True" />
-            <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}" />
-            <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ProgressBar">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="2" ClipToBounds="True">
-                            <Border x:Name="Indicator"
-                                    Width="96"
-                                    HorizontalAlignment="Center"
-                                    Background="{TemplateBinding Foreground}"
-                                    CornerRadius="2">
-                                <Border.RenderTransform>
-                                    <ScaleTransform ScaleX="0.45" />
-                                </Border.RenderTransform>
-                            </Border>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsIndeterminate" Value="True">
-                                <Trigger.EnterActions>
-                                    <BeginStoryboard>
-                                        <Storyboard RepeatBehavior="Forever" AutoReverse="True">
-                                            <DoubleAnimation Storyboard.TargetName="Indicator"
-                                                             Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
-                                                             From="0.35" To="1.4" Duration="0:0:0.7" />
-                                            <DoubleAnimation Storyboard.TargetName="Indicator"
-                                                             Storyboard.TargetProperty="Opacity"
-                                                             From="0.55" To="1" Duration="0:0:0.7" />
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </Trigger.EnterActions>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
         <!-- Buttons -->
         <Style x:Key="BaseButtonStyle" TargetType="Button">
             <Setter Property="FocusVisualStyle" Value="{StaticResource AccentFocusVisualStyle}" />

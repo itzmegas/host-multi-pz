@@ -21,6 +21,7 @@ public partial class MainWindow : Window
     private UiStatus _status = new(UiStatusKind.NoSnapshot);
     private CloudUiStatus _cloudStatus;
     private readonly UiOperationGate _operationGate = new();
+    private string _operationMessageKey = "OperationInProgress";
     private bool _initialized;
 
     public MainWindow()
@@ -62,6 +63,7 @@ public partial class MainWindow : Window
     {
         if (!_operationGate.TryBegin(UiOperation.Local)) return;
 
+        _operationMessageKey = "OperationCreatingSnapshot";
         _status = new UiStatus(UiStatusKind.CreatingSnapshot);
         RenderStatus();
         LocalSnapshotResult result;
@@ -76,7 +78,7 @@ public partial class MainWindow : Window
         finally
         {
             _operationGate.End(UiOperation.Local);
-            LocalOperationProgress.Visibility = Visibility.Collapsed;
+            _operationMessageKey = "OperationInProgress";
             RenderActionAvailability();
         }
 
@@ -104,6 +106,7 @@ public partial class MainWindow : Window
 
         if (!_operationGate.TryBegin(UiOperation.Local)) return;
 
+        _operationMessageKey = "OperationRestoringSnapshot";
         _status = new UiStatus(UiStatusKind.RestoringSnapshot);
         RenderStatus();
         LocalSnapshotRestoreResult result;
@@ -121,7 +124,7 @@ public partial class MainWindow : Window
         finally
         {
             _operationGate.End(UiOperation.Local);
-            LocalOperationProgress.Visibility = Visibility.Collapsed;
+            _operationMessageKey = "OperationInProgress";
             RenderActionAvailability();
         }
 
@@ -182,14 +185,11 @@ public partial class MainWindow : Window
     private void RenderStatus()
     {
         SnapshotStatusText.Text = _text.Format(_status, _saveLocation.MultiplayerSavesPath);
-        LocalOperationProgress.Visibility = _operationGate.Current == UiOperation.Local
-            ? Visibility.Visible
-            : Visibility.Collapsed;
         RenderActionAvailability();
     }
 
     private async void CloudConnectButton_Click(object sender, RoutedEventArgs e) =>
-        await RunCloudAsync(async ct =>
+        await RunCloudAsync("OperationConnecting", async ct =>
         {
             _cloudStatus = new(CloudStatusKind.Connecting); RenderCloudStatus();
             var account = await _cloudProviders.Selected.ConnectAsync(ct);
@@ -197,7 +197,7 @@ public partial class MainWindow : Window
         });
 
     private async void CloudUploadButton_Click(object sender, RoutedEventArgs e) =>
-        await RunCloudAsync(async ct => _cloudStatus = new(CloudStatusKind.UploadSucceeded,
+        await RunCloudAsync("OperationUploading", async ct => _cloudStatus = new(CloudStatusKind.UploadSucceeded,
             await Transfers().UploadLatestAsync(ct)));
 
     private async void CloudDownloadButton_Click(object sender, RoutedEventArgs e)
@@ -219,7 +219,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        await RunCloudAsync(async ct =>
+        await RunCloudAsync("OperationDownloading", async ct =>
         {
             var result = await Transfers().DownloadAndRestoreLatestAsync(_saveLocation.MultiplayerSavesPath, ct);
             _cloudStatus = result.Succeeded
@@ -234,17 +234,23 @@ public partial class MainWindow : Window
     }
 
     private async void CloudDisconnectButton_Click(object sender, RoutedEventArgs e) =>
-        await RunCloudAsync(async ct => { await _cloudProviders.Selected.DisconnectAsync(ct); _cloudStatus = new(CloudStatusKind.Disconnected); });
+        await RunCloudAsync("OperationDisconnecting", async ct => { await _cloudProviders.Selected.DisconnectAsync(ct); _cloudStatus = new(CloudStatusKind.Disconnected); });
 
     private CloudSnapshotTransferService Transfers() => new(_cloudProviders.Selected.SnapshotStore, _snapshotsDirectory);
 
-    private async Task RunCloudAsync(Func<CancellationToken, Task> operation)
+    private async Task RunCloudAsync(string operationMessageKey, Func<CancellationToken, Task> operation)
     {
         if (!_operationGate.TryBegin(UiOperation.Cloud)) return;
+        _operationMessageKey = operationMessageKey;
         RenderCloudStatus();
         try { using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(4)); await operation(timeout.Token); }
         catch { _cloudStatus = new(CloudStatusKind.Failed); }
-        finally { _operationGate.End(UiOperation.Cloud); RenderCloudStatus(); }
+        finally
+        {
+            _operationGate.End(UiOperation.Cloud);
+            _operationMessageKey = "OperationInProgress";
+            RenderCloudStatus();
+        }
     }
 
     private void RenderCloudStatus()
@@ -255,6 +261,10 @@ public partial class MainWindow : Window
 
     private void RenderActionAvailability()
     {
+        var busy = _operationGate.Current != UiOperation.Idle;
+        OperationOverlay.Visibility = busy ? Visibility.Visible : Visibility.Collapsed;
+        OperationProgressText.Text = _text[_operationMessageKey];
+
         var availability = UiActionAvailabilityCalculator.Calculate(
             _cloudProviders.Selected.IsConfigured,
             _cloudProviders.Selected.IsConnected,
