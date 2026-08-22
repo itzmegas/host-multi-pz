@@ -200,9 +200,38 @@ public partial class MainWindow : Window
         await RunCloudAsync(async ct => _cloudStatus = new(CloudStatusKind.UploadSucceeded,
             await Transfers().UploadLatestAsync(ct)));
 
-    private async void CloudDownloadButton_Click(object sender, RoutedEventArgs e) =>
-        await RunCloudAsync(async ct => _cloudStatus = new(CloudStatusKind.DownloadSucceeded,
-            await Transfers().DownloadLatestAsync(ct)));
+    private async void CloudDownloadButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_operationGate.Current != UiOperation.Idle) return;
+
+        var confirmation = new RestoreConfirmationDialog(
+            _text,
+            "ConfirmDownloadRestoreTitle",
+            "ConfirmDownloadRestoreMessage")
+        {
+            Owner = this
+        }.ShowDialog();
+
+        if (confirmation != true)
+        {
+            _status = new UiStatus(UiStatusKind.RestoreCancelled);
+            RenderStatus();
+            return;
+        }
+
+        await RunCloudAsync(async ct =>
+        {
+            var result = await Transfers().DownloadAndRestoreLatestAsync(_saveLocation.MultiplayerSavesPath, ct);
+            _cloudStatus = result.Succeeded
+                ? new(CloudStatusKind.DownloadRestored, result.SnapshotId)
+                : new(CloudStatusKind.Failed);
+            _status = result.Succeeded
+                ? new UiStatus(UiStatusKind.RestoreSucceeded, SnapshotId: result.SnapshotId, Path: result.BackupPath)
+                : new UiStatus(UiStatusKind.RestoreFailed, RestoreFailure: result.FailureReason,
+                    SnapshotId: result.SnapshotId, Path: result.BackupPath);
+            RenderStatus();
+        });
+    }
 
     private async void CloudDisconnectButton_Click(object sender, RoutedEventArgs e) =>
         await RunCloudAsync(async ct => { await _cloudProviders.Selected.DisconnectAsync(ct); _cloudStatus = new(CloudStatusKind.Disconnected); });

@@ -27,13 +27,16 @@ public sealed class CloudSnapshotTransferService
 {
     private readonly ICloudSnapshotStore _store;
     private readonly LocalSnapshotRestoreService _validator;
+    private readonly IProjectZomboidProcessDetector _processDetector;
     private readonly string _snapshotsDirectory;
 
-    public CloudSnapshotTransferService(ICloudSnapshotStore store, string snapshotsDirectory)
+    public CloudSnapshotTransferService(ICloudSnapshotStore store, string snapshotsDirectory,
+        IProjectZomboidProcessDetector? processDetector = null)
     {
         _store = store;
         _snapshotsDirectory = Path.GetFullPath(snapshotsDirectory);
-        _validator = new LocalSnapshotRestoreService(snapshotsDirectory: _snapshotsDirectory);
+        _processDetector = processDetector ?? new ProjectZomboidProcessDetector();
+        _validator = new LocalSnapshotRestoreService(processDetector, _snapshotsDirectory);
     }
 
     public async Task<string> UploadLatestAsync(CancellationToken cancellationToken)
@@ -85,6 +88,29 @@ public sealed class CloudSnapshotTransferService
         {
             Directory.Delete(staging, recursive: true);
         }
+    }
+
+    public async Task<LocalSnapshotRestoreResult> DownloadAndRestoreLatestAsync(string? targetDirectory, CancellationToken cancellationToken)
+    {
+        if (_processDetector.IsProjectZomboidRunning())
+        {
+            return LocalSnapshotRestoreResult.Failure(
+                RestoreFailureReason.ProjectZomboidRunning,
+                "Project Zomboid is running. Close the game before restoring a snapshot.");
+        }
+
+        if (string.IsNullOrWhiteSpace(targetDirectory) || !Directory.Exists(targetDirectory))
+        {
+            return LocalSnapshotRestoreResult.Failure(
+                RestoreFailureReason.TargetMissing,
+                "The multiplayer saves directory does not exist.");
+        }
+
+        var snapshotId = await DownloadLatestAsync(cancellationToken);
+        return _validator.RestoreSnapshot(
+            targetDirectory,
+            Path.Combine(_snapshotsDirectory, $"snapshot-{snapshotId}.zip"),
+            Path.Combine(_snapshotsDirectory, $"snapshot-{snapshotId}.json"));
     }
 
     private (string ArchivePath, string ManifestPath, LocalSnapshotManifest Manifest)? FindLatestValidLocalSnapshot()

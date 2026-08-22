@@ -68,9 +68,9 @@ MultiHostPz requests the restricted `https://www.googleapis.com/auth/drive` scop
 
 The Dropbox desktop authorization flow uses authorization-code PKCE and requests offline access. Refresh and access tokens are encrypted for the current Windows user with DPAPI in `%LOCALAPPDATA%\MultiHostPz\dropbox.tokens`, isolated from Google token state.
 
-Dropbox stores paired ZIP and JSON files under the app-relative `/snapshots` folder. Upload writes the ZIP first and manifest last. Download stages and validates the selected latest valid pair before atomically publishing it into the local snapshots directory; it never restores automatically. Use the existing explicit local restore action afterward.
+Dropbox stores paired ZIP and JSON files under the app-relative `/snapshots` folder. Upload writes the ZIP first and manifest last. Download asks for confirmation, then downloads, validates, and restores the latest valid pair as one operation: it is published into the local snapshots directory and restored into the multiplayer saves directory, preserving the previous saves as a timestamped backup. The operation is refused while Project Zomboid is running.
 
-Both providers publish the ZIP first and the JSON manifest last. Google Drive uses bounded resumable chunks; both providers stream archive downloads into staging. A download is validated and published only into the local snapshots directory and never restores automatically. Host locking, conflict prevention, automatic restore, and multi-writer coordination are not implemented yet.
+Both providers publish the ZIP first and the JSON manifest last. Google Drive uses bounded resumable chunks; both providers stream archive downloads into staging. A download is validated before it is restored, and the restore always targets the exact snapshot that was downloaded. Host locking, conflict prevention, and multi-writer coordination are not implemented yet.
 
 ## Languages and settings
 
