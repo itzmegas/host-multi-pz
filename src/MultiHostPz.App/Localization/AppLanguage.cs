@@ -119,7 +119,7 @@ public sealed record UiStatus(
 
 public enum CloudStatusKind
 {
-    NotConfigured, Disconnected, Connecting, Connected, UploadSucceeded, DownloadSucceeded, Failed
+    NotConfigured, Disconnected, Connecting, Connected, UploadSucceeded, DownloadRestored, Failed
 }
 
 public sealed record CloudUiStatus(CloudStatusKind Kind, string? Value = null);
@@ -163,7 +163,7 @@ public sealed class LocalizedText
             CloudStatusKind.Connecting => this[prefix + "Connecting"],
             CloudStatusKind.Connected => Format(prefix + "Connected", status.Value),
             CloudStatusKind.UploadSucceeded => Format(prefix + "UploadSucceeded", status.Value),
-            CloudStatusKind.DownloadSucceeded => Format(prefix + "DownloadSucceeded", status.Value),
+            CloudStatusKind.DownloadRestored => Format(prefix + "DownloadRestored", status.Value),
             _ => this[prefix + "Failed"]
         };
     }

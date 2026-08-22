@@ -18,9 +18,18 @@
   <data name="SnapshotNone" xml:space="preserve"><value>Todavía no se creó ninguna instantánea local</value></data>
   <data name="SnapshotCreating" xml:space="preserve"><value>Creando instantánea...</value></data>
   <data name="SnapshotRestoring" xml:space="preserve"><value>Restaurando instantánea...</value></data>
+  <data name="OperationInProgress" xml:space="preserve"><value>Trabajando...</value></data>
+  <data name="OperationCreatingSnapshot" xml:space="preserve"><value>Creando instantánea local...</value></data>
+  <data name="OperationRestoringSnapshot" xml:space="preserve"><value>Restaurando instantánea local...</value></data>
+  <data name="OperationConnecting" xml:space="preserve"><value>Conectando con la nube...</value></data>
+  <data name="OperationUploading" xml:space="preserve"><value>Subiendo instantánea...</value></data>
+  <data name="OperationDownloading" xml:space="preserve"><value>Descargando y restaurando instantánea...</value></data>
+  <data name="OperationDisconnecting" xml:space="preserve"><value>Desconectando...</value></data>
   <data name="SyncNone" xml:space="preserve"><value>Todavía no se sincronizó</value></data>
   <data name="ConfirmRestoreMessage" xml:space="preserve"><value>¿Desea restaurar la última instantánea local válida? Las partidas multijugador actuales se conservarán como una copia de seguridad con marca de tiempo.</value></data>
   <data name="ConfirmRestoreTitle" xml:space="preserve"><value>Confirmar restauración local</value></data>
+  <data name="ConfirmDownloadRestoreTitle" xml:space="preserve"><value>Confirmar descarga y restauración</value></data>
+  <data name="ConfirmDownloadRestoreMessage" xml:space="preserve"><value>¿Desea descargar la última instantánea de la nube y reemplazar las partidas multijugador actuales? Las partidas actuales se conservarán como una copia de seguridad con marca de tiempo.</value></data>
   <data name="SnapshotCreated" xml:space="preserve"><value>Se creó la instantánea local {0} en {1}.</value></data>
   <data name="SnapshotRunning" xml:space="preserve"><value>La instantánea se bloqueó porque Project Zomboid está en ejecución. Cierre el juego e inténtelo de nuevo.</value></data>
   <data name="SnapshotSourceMissing" xml:space="preserve"><value>La instantánea falló porque el directorio de partidas multijugador no existe: {0}</value></data>
@@ -47,7 +56,7 @@
   <data name="DropboxConnecting" xml:space="preserve"><value>Conectando en el navegador...</value></data>
   <data name="DropboxConnected" xml:space="preserve"><value>Conectado como {0}</value></data>
   <data name="DropboxUploadSucceeded" xml:space="preserve"><value>Se cargó la instantánea local {0}.</value></data>
-  <data name="DropboxDownloadSucceeded" xml:space="preserve"><value>Se descargó localmente la instantánea {0}. Use la acción explícita de restauración cuando esté listo.</value></data>
+  <data name="DropboxDownloadRestored" xml:space="preserve"><value>Se descargó y restauró la instantánea {0}.</value></data>
   <data name="DropboxFailed" xml:space="preserve"><value>La operación de Dropbox falló de forma segura. Inténtelo de nuevo.</value></data>
   <data name="DropboxConnectButton" xml:space="preserve"><value>Conectar Dropbox</value></data>
   <data name="DropboxUploadButton" xml:space="preserve"><value>Subir la última local</value></data>
@@ -57,13 +66,13 @@
   <data name="CloudProviderLabel" xml:space="preserve"><value>Proveedor de nube</value></data>
   <data name="CloudConnectButton" xml:space="preserve"><value>Conectar</value></data>
   <data name="CloudUploadButton" xml:space="preserve"><value>Subir la última local</value></data>
-  <data name="CloudDownloadButton" xml:space="preserve"><value>Descargar la última remota</value></data>
+  <data name="CloudDownloadButton" xml:space="preserve"><value>Descargar y restaurar</value></data>
   <data name="CloudDisconnectButton" xml:space="preserve"><value>Desconectar</value></data>
   <data name="GoogleDriveNotConfigured" xml:space="preserve"><value>Sin configurar. Defina MULTIHOSTPZ_GOOGLE_CLIENT_SECRETS_PATH con la ruta a un JSON de cliente OAuth de escritorio y reinicie la aplicación.</value></data>
   <data name="GoogleDriveDisconnected" xml:space="preserve"><value>Google Drive está desconectado</value></data>
   <data name="GoogleDriveConnecting" xml:space="preserve"><value>Conectando con Google Drive en el navegador...</value></data>
   <data name="GoogleDriveConnected" xml:space="preserve"><value>Google Drive conectado como {0}</value></data>
   <data name="GoogleDriveUploadSucceeded" xml:space="preserve"><value>Se subió la instantánea local {0} a Google Drive.</value></data>
-  <data name="GoogleDriveDownloadSucceeded" xml:space="preserve"><value>Se descargó localmente la instantánea {0} de Google Drive. Use la acción explícita de restauración cuando esté listo.</value></data>
+  <data name="GoogleDriveDownloadRestored" xml:space="preserve"><value>Se descargó y restauró la instantánea {0} de Google Drive.</value></data>
   <data name="GoogleDriveFailed" xml:space="preserve"><value>La operación de Google Drive falló de forma segura. Si conecta otra cuenta, comparta la carpeta MultiHostPz y vuelva a conectar.</value></data>
 </root>

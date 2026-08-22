@@ -18,9 +18,18 @@
   <data name="SnapshotNone" xml:space="preserve"><value>No local snapshot created yet</value></data>
   <data name="SnapshotCreating" xml:space="preserve"><value>Creating snapshot...</value></data>
   <data name="SnapshotRestoring" xml:space="preserve"><value>Restoring snapshot...</value></data>
+  <data name="OperationInProgress" xml:space="preserve"><value>Working...</value></data>
+  <data name="OperationCreatingSnapshot" xml:space="preserve"><value>Creating local snapshot...</value></data>
+  <data name="OperationRestoringSnapshot" xml:space="preserve"><value>Restoring local snapshot...</value></data>
+  <data name="OperationConnecting" xml:space="preserve"><value>Connecting to cloud...</value></data>
+  <data name="OperationUploading" xml:space="preserve"><value>Uploading snapshot...</value></data>
+  <data name="OperationDownloading" xml:space="preserve"><value>Downloading and restoring snapshot...</value></data>
+  <data name="OperationDisconnecting" xml:space="preserve"><value>Disconnecting...</value></data>
   <data name="SyncNone" xml:space="preserve"><value>Not synchronized yet</value></data>
   <data name="ConfirmRestoreMessage" xml:space="preserve"><value>Restore the latest valid local snapshot? The current multiplayer saves will be preserved as a timestamped backup.</value></data>
   <data name="ConfirmRestoreTitle" xml:space="preserve"><value>Confirm local restore</value></data>
+  <data name="ConfirmDownloadRestoreTitle" xml:space="preserve"><value>Confirm download and restore</value></data>
+  <data name="ConfirmDownloadRestoreMessage" xml:space="preserve"><value>Download the latest cloud snapshot and replace the current multiplayer saves with it? The current saves will be preserved as a timestamped backup.</value></data>
   <data name="SnapshotCreated" xml:space="preserve"><value>Local snapshot {0} was created at {1}.</value></data>
   <data name="SnapshotRunning" xml:space="preserve"><value>Snapshot blocked because Project Zomboid is running. Close the game and try again.</value></data>
   <data name="SnapshotSourceMissing" xml:space="preserve"><value>Snapshot failed because the multiplayer saves directory does not exist: {0}</value></data>
@@ -47,7 +56,7 @@
   <data name="DropboxConnecting" xml:space="preserve"><value>Connecting in your browser...</value></data>
   <data name="DropboxConnected" xml:space="preserve"><value>Connected as {0}</value></data>
   <data name="DropboxUploadSucceeded" xml:space="preserve"><value>Uploaded local snapshot {0}.</value></data>
-  <data name="DropboxDownloadSucceeded" xml:space="preserve"><value>Downloaded snapshot {0} locally. Use the explicit restore action when ready.</value></data>
+  <data name="DropboxDownloadRestored" xml:space="preserve"><value>Downloaded and restored snapshot {0}.</value></data>
   <data name="DropboxFailed" xml:space="preserve"><value>The Dropbox operation failed safely. Try again.</value></data>
   <data name="DropboxConnectButton" xml:space="preserve"><value>Connect Dropbox</value></data>
   <data name="DropboxUploadButton" xml:space="preserve"><value>Upload latest local</value></data>
@@ -57,13 +66,13 @@
   <data name="CloudProviderLabel" xml:space="preserve"><value>Cloud provider</value></data>
   <data name="CloudConnectButton" xml:space="preserve"><value>Connect</value></data>
   <data name="CloudUploadButton" xml:space="preserve"><value>Upload latest local</value></data>
-  <data name="CloudDownloadButton" xml:space="preserve"><value>Download latest remote</value></data>
+  <data name="CloudDownloadButton" xml:space="preserve"><value>Download and restore</value></data>
   <data name="CloudDisconnectButton" xml:space="preserve"><value>Disconnect</value></data>
   <data name="GoogleDriveNotConfigured" xml:space="preserve"><value>Not configured. Set MULTIHOSTPZ_GOOGLE_CLIENT_SECRETS_PATH to a Desktop OAuth client JSON and restart the app.</value></data>
   <data name="GoogleDriveDisconnected" xml:space="preserve"><value>Google Drive is disconnected</value></data>
   <data name="GoogleDriveConnecting" xml:space="preserve"><value>Connecting to Google Drive in your browser...</value></data>
   <data name="GoogleDriveConnected" xml:space="preserve"><value>Google Drive connected as {0}</value></data>
   <data name="GoogleDriveUploadSucceeded" xml:space="preserve"><value>Uploaded local snapshot {0} to Google Drive.</value></data>
-  <data name="GoogleDriveDownloadSucceeded" xml:space="preserve"><value>Downloaded Google Drive snapshot {0} locally. Use the explicit restore action when ready.</value></data>
+  <data name="GoogleDriveDownloadRestored" xml:space="preserve"><value>Downloaded and restored snapshot {0} from Google Drive.</value></data>
   <data name="GoogleDriveFailed" xml:space="preserve"><value>The Google Drive operation failed safely. If another account is connecting, share the MultiHostPz folder with it and reconnect.</value></data>
 </root>

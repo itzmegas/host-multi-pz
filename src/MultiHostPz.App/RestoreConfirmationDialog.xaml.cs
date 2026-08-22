@@ -5,11 +5,11 @@ namespace MultiHostPz.App;
 
 public partial class RestoreConfirmationDialog : Window
 {
-    public RestoreConfirmationDialog(LocalizedText text)
+    public RestoreConfirmationDialog(LocalizedText text, string titleKey = "ConfirmRestoreTitle", string messageKey = "ConfirmRestoreMessage")
     {
         InitializeComponent();
-        Title = text["ConfirmRestoreTitle"];
-        MessageText.Text = text["ConfirmRestoreMessage"];
+        Title = text[titleKey];
+        MessageText.Text = text[messageKey];
         YesButton.Content = text["Yes"];
         NoButton.Content = text["No"];
     }
