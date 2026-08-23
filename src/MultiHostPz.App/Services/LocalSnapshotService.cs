@@ -21,7 +21,12 @@ public sealed record LocalSnapshotManifest(
     [property: JsonPropertyName("sourceDirectoryName")] string SourceDirectoryName,
     [property: JsonPropertyName("fileCount")] long FileCount,
     [property: JsonPropertyName("totalBytes")] long TotalBytes,
-    [property: JsonPropertyName("archiveFileName")] string ArchiveFileName);
+    [property: JsonPropertyName("archiveFileName")] string ArchiveFileName,
+    [property: JsonPropertyName("archiveLayout")] string ArchiveLayout = "multiplayer")
+{
+    public const string LegacyArchiveLayout = "multiplayer";
+    public const string SavesAndServerArchiveLayout = "saves-and-server";
+}
 
 public sealed record LocalSnapshotResult(
     bool Succeeded,
@@ -45,7 +50,8 @@ public sealed record LocalSnapshotResult(
 
 public sealed class LocalSnapshotService
 {
-    private const int ManifestFormatVersion = 1;
+    private const int LegacyManifestFormatVersion = 1;
+    private const int CombinedManifestFormatVersion = 2;
     private const string SnapshotDirectoryName = "snapshots";
     private const string ApplicationDirectoryName = "MultiHostPz";
 
@@ -69,18 +75,30 @@ public sealed class LocalSnapshotService
                 SnapshotDirectoryName));
     }
 
-    public LocalSnapshotResult CreateSnapshot(string sourceDirectory)
+    public LocalSnapshotResult CreateSnapshot(string sourceDirectory, string? serverDirectory = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sourceDirectory);
 
         var resolvedSourceDirectory = Path.GetFullPath(sourceDirectory);
         var resolvedSnapshotsDirectory = Path.GetFullPath(_snapshotsDirectory);
+        string? resolvedServerDirectory = null;
 
         if (!Directory.Exists(resolvedSourceDirectory))
         {
             return LocalSnapshotResult.Failure(
                 SnapshotFailureReason.SourceMissing,
                 "The multiplayer saves directory does not exist.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(serverDirectory))
+        {
+            resolvedServerDirectory = Path.GetFullPath(serverDirectory);
+            if (!Directory.Exists(resolvedServerDirectory))
+            {
+                return LocalSnapshotResult.Failure(
+                    SnapshotFailureReason.SourceMissing,
+                    "The server configuration directory does not exist.");
+            }
         }
 
         if (_processDetector.IsProjectZomboidRunning())
@@ -95,6 +113,14 @@ public sealed class LocalSnapshotService
             return LocalSnapshotResult.Failure(
                 SnapshotFailureReason.DestinationInsideSource,
                 "The snapshot destination cannot be inside the multiplayer saves directory.");
+        }
+
+        if (resolvedServerDirectory is not null
+            && IsSameOrDescendantPath(resolvedServerDirectory, resolvedSnapshotsDirectory))
+        {
+            return LocalSnapshotResult.Failure(
+                SnapshotFailureReason.DestinationInsideSource,
+                "The snapshot destination cannot be inside the server configuration directory.");
         }
 
         string? temporaryArchivePath = null;
@@ -122,21 +148,29 @@ public sealed class LocalSnapshotService
                     SearchOption.AllDirectories)
                 .Select(filePath => new FileInfo(filePath))
                 .ToArray();
+            var serverFiles = resolvedServerDirectory is null
+                ? []
+                : Directory.EnumerateFiles(resolvedServerDirectory, "*", SearchOption.AllDirectories)
+                    .Select(filePath => new FileInfo(filePath))
+                    .ToArray();
 
             var manifest = new LocalSnapshotManifest(
-                ManifestFormatVersion,
+                resolvedServerDirectory is null ? LegacyManifestFormatVersion : CombinedManifestFormatVersion,
                 snapshotId,
                 DateTimeOffset.UtcNow,
-                new DirectoryInfo(resolvedSourceDirectory).Name,
-                sourceFiles.LongLength,
-                sourceFiles.Sum(file => file.Length),
-                archiveFileName);
+                resolvedServerDirectory is null ? new DirectoryInfo(resolvedSourceDirectory).Name : "Zomboid",
+                sourceFiles.LongLength + serverFiles.LongLength,
+                sourceFiles.Sum(file => file.Length) + serverFiles.Sum(file => file.Length),
+                archiveFileName,
+                resolvedServerDirectory is null
+                    ? LocalSnapshotManifest.LegacyArchiveLayout
+                    : LocalSnapshotManifest.SavesAndServerArchiveLayout);
 
-            ZipFile.CreateFromDirectory(
+            CreateArchive(
                 resolvedSourceDirectory,
+                resolvedServerDirectory,
                 temporaryArchivePath,
-                CompressionLevel.Optimal,
-                includeBaseDirectory: false);
+                resolvedServerDirectory is not null);
 
             var manifestJson = JsonSerializer.Serialize(manifest, ManifestJsonOptions);
             using (var manifestStream = new FileStream(
@@ -194,7 +228,54 @@ public sealed class LocalSnapshotService
                 StringComparison.OrdinalIgnoreCase)
             || destination.StartsWith(
                 source + Path.AltDirectorySeparatorChar,
-                StringComparison.OrdinalIgnoreCase);
+            StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static void CreateArchive(
+        string sourceDirectory,
+        string? serverDirectory,
+        string archivePath,
+        bool includeServer)
+    {
+        if (!includeServer)
+        {
+            ZipFile.CreateFromDirectory(
+                sourceDirectory,
+                archivePath,
+                CompressionLevel.Optimal,
+                includeBaseDirectory: false);
+            return;
+        }
+
+        using var archive = ZipFile.Open(archivePath, ZipArchiveMode.Create);
+        AddDirectoryToArchive(archive, sourceDirectory, "Saves/Multiplayer");
+        AddDirectoryToArchive(archive, serverDirectory!, "Server");
+    }
+
+    private static void AddDirectoryToArchive(
+        ZipArchive archive,
+        string sourceDirectory,
+        string archiveRoot)
+    {
+        var root = archiveRoot.TrimEnd('/') + "/";
+        archive.CreateEntry(root);
+
+        foreach (var directory in Directory.EnumerateDirectories(sourceDirectory, "*", SearchOption.AllDirectories)
+                     .OrderBy(path => path, StringComparer.OrdinalIgnoreCase))
+        {
+            var relativePath = Path.GetRelativePath(sourceDirectory, directory).Replace('\\', '/');
+            archive.CreateEntry($"{root}{relativePath}/");
+        }
+
+        foreach (var file in Directory.EnumerateFiles(sourceDirectory, "*", SearchOption.AllDirectories)
+                     .OrderBy(path => path, StringComparer.OrdinalIgnoreCase))
+        {
+            var relativePath = Path.GetRelativePath(sourceDirectory, file).Replace('\\', '/');
+            var entry = archive.CreateEntry($"{root}{relativePath}", CompressionLevel.Optimal);
+            using var input = File.OpenRead(file);
+            using var output = entry.Open();
+            input.CopyTo(output);
+        }
     }
 
     private static void TryDeleteFile(string? path)

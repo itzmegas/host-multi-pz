@@ -2,7 +2,7 @@ using System.IO;
 
 namespace MultiHostPz.App.Services;
 
-public sealed record PzSaveLocation(string ProfileRoot, string MultiplayerSavesPath);
+public sealed record PzSaveLocation(string ProfileRoot, string MultiplayerSavesPath, string ServerPath);
 
 public sealed class PzSaveLocator
 {
@@ -30,7 +30,8 @@ public sealed class PzSaveLocator
             profileRoot,
             SavesDirectoryName,
             MultiplayerDirectoryName);
+        var serverPath = Path.Combine(profileRoot, "Server");
 
-        return new PzSaveLocation(profileRoot, multiplayerSavesPath);
+        return new PzSaveLocation(profileRoot, multiplayerSavesPath, serverPath);
     }
 }

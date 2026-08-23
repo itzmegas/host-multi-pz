@@ -90,7 +90,15 @@ public sealed class CloudSnapshotTransferService
         }
     }
 
-    public async Task<LocalSnapshotRestoreResult> DownloadAndRestoreLatestAsync(string? targetDirectory, CancellationToken cancellationToken)
+    public Task<LocalSnapshotRestoreResult> DownloadAndRestoreLatestAsync(
+        string? targetDirectory,
+        CancellationToken cancellationToken) =>
+        DownloadAndRestoreLatestAsync(targetDirectory, null, cancellationToken);
+
+    public async Task<LocalSnapshotRestoreResult> DownloadAndRestoreLatestAsync(
+        string? targetDirectory,
+        string? serverDirectory,
+        CancellationToken cancellationToken)
     {
         if (_processDetector.IsProjectZomboidRunning())
         {
@@ -110,7 +118,8 @@ public sealed class CloudSnapshotTransferService
         return _validator.RestoreSnapshot(
             targetDirectory,
             Path.Combine(_snapshotsDirectory, $"snapshot-{snapshotId}.zip"),
-            Path.Combine(_snapshotsDirectory, $"snapshot-{snapshotId}.json"));
+            Path.Combine(_snapshotsDirectory, $"snapshot-{snapshotId}.json"),
+            serverDirectory);
     }
 
     private (string ArchivePath, string ManifestPath, LocalSnapshotManifest Manifest)? FindLatestValidLocalSnapshot()

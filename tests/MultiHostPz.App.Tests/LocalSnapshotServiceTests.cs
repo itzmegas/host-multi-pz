@@ -48,6 +48,27 @@ public sealed class LocalSnapshotServiceTests
     }
 
     [Fact]
+    public void CreateSnapshot_WithServerIncludesSavesAndServerConfiguration()
+    {
+        using var fixture = new SnapshotFixture();
+        fixture.CreateSourceFile(Path.Combine("players", "alice.db"), "player-data");
+        fixture.CreateServerFile("server.ini", "server-name=Test Server");
+
+        var result = fixture.Service.CreateSnapshot(fixture.SourceDirectory, fixture.ServerDirectory);
+
+        Assert.True(result.Succeeded, result.ErrorMessage);
+        using var archive = ZipFile.OpenRead(result.ArchivePath!);
+        Assert.Contains("Saves/Multiplayer/players/alice.db", archive.Entries.Select(entry => entry.FullName));
+        Assert.Contains("Server/server.ini", archive.Entries.Select(entry => entry.FullName));
+
+        var manifest = JsonSerializer.Deserialize<LocalSnapshotManifest>(File.ReadAllText(result.ManifestPath!));
+        Assert.NotNull(manifest);
+        Assert.Equal(2, manifest.FormatVersion);
+        Assert.Equal(LocalSnapshotManifest.SavesAndServerArchiveLayout, manifest.ArchiveLayout);
+        Assert.Equal(2, manifest.FileCount);
+    }
+
+    [Fact]
     public void CreateSnapshot_RejectsMissingSource()
     {
         using var fixture = new SnapshotFixture();
@@ -140,8 +161,10 @@ public sealed class LocalSnapshotServiceTests
         {
             RootDirectory = Path.Combine(Path.GetTempPath(), $"MultiHostPzTests-{Guid.NewGuid():N}");
             SourceDirectory = Path.Combine(RootDirectory, "source");
+            ServerDirectory = Path.Combine(RootDirectory, "server");
             SnapshotsDirectory = Path.Combine(RootDirectory, "snapshots");
             Directory.CreateDirectory(SourceDirectory);
+            Directory.CreateDirectory(ServerDirectory);
             Service = new LocalSnapshotService(
                 new TestProcessDetector(projectZomboidRunning),
                 SnapshotsDirectory);
@@ -151,6 +174,8 @@ public sealed class LocalSnapshotServiceTests
 
         public string SourceDirectory { get; }
 
+        public string ServerDirectory { get; }
+
         public string SnapshotsDirectory { get; }
 
         public LocalSnapshotService Service { get; }
@@ -158,6 +183,13 @@ public sealed class LocalSnapshotServiceTests
         public void CreateSourceFile(string relativePath, string content)
         {
             var fullPath = Path.Combine(SourceDirectory, relativePath);
+            Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
+            File.WriteAllText(fullPath, content);
+        }
+
+        public void CreateServerFile(string relativePath, string content)
+        {
+            var fullPath = Path.Combine(ServerDirectory, relativePath);
             Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
             File.WriteAllText(fullPath, content);
         }

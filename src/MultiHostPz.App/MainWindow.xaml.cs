@@ -69,7 +69,9 @@ public partial class MainWindow : Window
         LocalSnapshotResult result;
         try
         {
-            result = await Task.Run(() => _snapshotService.CreateSnapshot(_saveLocation.MultiplayerSavesPath));
+            result = await Task.Run(() => _snapshotService.CreateSnapshot(
+                _saveLocation.MultiplayerSavesPath,
+                _saveLocation.ServerPath));
         }
         catch
         {
@@ -113,7 +115,8 @@ public partial class MainWindow : Window
         try
         {
             result = await Task.Run(() => _snapshotRestoreService.RestoreLatestSnapshot(
-                _saveLocation.MultiplayerSavesPath));
+                _saveLocation.MultiplayerSavesPath,
+                _saveLocation.ServerPath));
         }
         catch
         {
@@ -221,7 +224,10 @@ public partial class MainWindow : Window
 
         await RunCloudAsync("OperationDownloading", async ct =>
         {
-            var result = await Transfers().DownloadAndRestoreLatestAsync(_saveLocation.MultiplayerSavesPath, ct);
+            var result = await Transfers().DownloadAndRestoreLatestAsync(
+                _saveLocation.MultiplayerSavesPath,
+                _saveLocation.ServerPath,
+                ct);
             _cloudStatus = result.Succeeded
                 ? new(CloudStatusKind.DownloadRestored, result.SnapshotId)
                 : new(CloudStatusKind.Failed);

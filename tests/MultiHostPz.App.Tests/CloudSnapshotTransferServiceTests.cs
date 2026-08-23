@@ -56,6 +56,37 @@ public sealed class CloudSnapshotTransferServiceTests
     }
 
     [Fact]
+    public async Task DownloadAndRestore_RestoresSavesAndServerConfiguration()
+    {
+        using var root = new TestDirectory();
+        var remote = Path.Combine(root.Path, "remote");
+        var local = Path.Combine(root.Path, "local");
+        var sourceProfile = Path.Combine(root.Path, "source-profile");
+        var sourceSaves = Path.Combine(sourceProfile, "Saves", "Multiplayer");
+        var sourceServer = Path.Combine(sourceProfile, "Server");
+        var targetProfile = Path.Combine(root.Path, "target-profile");
+        var targetSaves = Path.Combine(targetProfile, "Saves", "Multiplayer");
+        var targetServer = Path.Combine(targetProfile, "Server");
+        Directory.CreateDirectory(sourceSaves);
+        Directory.CreateDirectory(sourceServer);
+        Directory.CreateDirectory(targetSaves);
+        Directory.CreateDirectory(targetServer);
+        File.WriteAllText(Path.Combine(sourceSaves, "save.txt"), "remote-save");
+        File.WriteAllText(Path.Combine(sourceServer, "server.ini"), "remote-server");
+        File.WriteAllText(Path.Combine(targetSaves, "save.txt"), "current-save");
+        File.WriteAllText(Path.Combine(targetServer, "server.ini"), "current-server");
+        var created = new LocalSnapshotService(new NotRunning(), remote)
+            .CreateSnapshot(sourceSaves, sourceServer);
+        var service = new CloudSnapshotTransferService(new FakeStore(created), local, new NotRunning());
+
+        var result = await service.DownloadAndRestoreLatestAsync(targetSaves, targetServer, default);
+
+        Assert.True(result.Succeeded, result.SafeMessage);
+        Assert.Equal("remote-save", File.ReadAllText(Path.Combine(targetSaves, "save.txt")));
+        Assert.Equal("remote-server", File.ReadAllText(Path.Combine(targetServer, "server.ini")));
+    }
+
+    [Fact]
     public async Task DownloadAndRestore_RestoresDownloadedSnapshotNotNewerLocalSnapshot()
     {
         using var root = new TestDirectory();

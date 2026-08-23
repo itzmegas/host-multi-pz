@@ -18,6 +18,9 @@ public sealed class PzSaveLocatorTests
         Assert.Equal(
             Path.Combine(userProfileRoot, "Zomboid", "Saves", "Multiplayer"),
             location.MultiplayerSavesPath);
+        Assert.Equal(
+            Path.Combine(userProfileRoot, "Zomboid", "Server"),
+            location.ServerPath);
     }
 
     [Fact]
