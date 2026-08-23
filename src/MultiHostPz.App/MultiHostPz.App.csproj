@@ -8,11 +8,10 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>MultiHostPz</AssemblyName>
     <RootNamespace>MultiHostPz.App</RootNamespace>
-    <Version>0.1.1</Version>
+    <Version>0.1.2</Version>
     <AssemblyVersion>$(Version).0</AssemblyVersion>
     <FileVersion>$(Version).0</FileVersion>
     <Product>MultiHostPz</Product>
-    <ApplicationIcon>Assets\ProjectZomboid.ico</ApplicationIcon>
     <GoogleClientSecretsPath Condition="'$(GoogleClientSecretsPath)' == ''">$(MSBuildProjectDirectory)\..\..\env\google-client-secrets.json</GoogleClientSecretsPath>
     <GoogleClientSecretsPath Condition="'$(GoogleClientSecretsPath)' == '$(MSBuildProjectDirectory)\..\..\env\google-client-secrets.json' and '$(MULTIHOSTPZ_GOOGLE_CLIENT_SECRETS_PATH)' != ''">$(MULTIHOSTPZ_GOOGLE_CLIENT_SECRETS_PATH)</GoogleClientSecretsPath>
   </PropertyGroup>
