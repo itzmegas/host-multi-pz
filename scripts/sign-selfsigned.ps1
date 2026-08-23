@@ -19,9 +19,10 @@ powershell -ExecutionPolicy Bypass -File scripts\sign-selfsigned.ps1
 #>
 [CmdletBinding()]
 param(
-    [string]$ExePath = "artifacts\MultiHostPz-0.1.0-win-x64\publish\MultiHostPz.exe",
-    [string]$ZipPath = "artifacts\MultiHostPz-0.1.0-win-x64.zip",
-    [string]$CerPath = "artifacts\MultiHostPz-0.1.0-win-x64.cer",
+    [string]$ProjectPath = "src\MultiHostPz.App\MultiHostPz.App.csproj",
+    [string]$ExePath = "",
+    [string]$ZipPath = "",
+    [string]$CerPath = "",
     [string]$CertSubject = "MultiHostPz",
     [int]$CertValidityYears = 10,
     [string]$TimestampUrl = "http://timestamp.digicert.com"
@@ -30,14 +31,27 @@ param(
 $ErrorActionPreference = "Stop"
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$signingDir = Join-Path $repoRoot "signing"
-$pfxPath = Join-Path $signingDir "MultiHostPz.pfx"
-$passwordPath = Join-Path $signingDir "MultiHostPz.pfx.password.txt"
+$fullProject = Join-Path $repoRoot $ProjectPath
+if (-not (Test-Path -LiteralPath $fullProject)) { throw "Project file not found: $fullProject" }
+
+[xml]$project = Get-Content -LiteralPath $fullProject -Raw
+$version = @($project.Project.PropertyGroup | ForEach-Object { $_.Version } |
+    Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -First 1)
+if ($version.Count -eq 0) { throw "Version was not found in: $fullProject" }
+$artifactRoot = "artifacts\MultiHostPz-$($version[0])-win-x64"
+if ([string]::IsNullOrWhiteSpace($ExePath)) { $ExePath = Join-Path $artifactRoot "publish\MultiHostPz.exe" }
+if ([string]::IsNullOrWhiteSpace($ZipPath)) { $ZipPath = "$artifactRoot.zip" }
+if ([string]::IsNullOrWhiteSpace($CerPath)) { $CerPath = "$artifactRoot.cer" }
+
 $fullExe = Join-Path $repoRoot $ExePath
 $fullZip = Join-Path $repoRoot $ZipPath
 $fullCer = Join-Path $repoRoot $CerPath
+$signingDir = Join-Path $repoRoot "signing"
+$pfxPath = Join-Path $signingDir "MultiHostPz.pfx"
+$passwordPath = Join-Path $signingDir "MultiHostPz.pfx.password.txt"
 
 if (-not (Test-Path -LiteralPath $fullExe)) { throw "Executable not found: $fullExe" }
+Write-Host "Release version: $($version[0])"
 
 # 1. Locate signtool.exe from the Windows SDK.
 $kitRoots = @("${env:ProgramFiles(x86)}\Windows Kits\10\bin", "${env:ProgramFiles}\Windows Kits\10\bin")

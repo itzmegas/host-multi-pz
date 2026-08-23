@@ -1,6 +1,7 @@
 using System.IO.Compression;
 using System.Text.Json;
 using MultiHostPz.App.Services;
+using static MultiHostPz.App.Tests.DropboxOAuthTests;
 
 namespace MultiHostPz.App.Tests;
 
@@ -27,6 +28,41 @@ public sealed class LocalSnapshotRestoreServiceTests
             Path.Combine(fixture.TargetDirectory, "server.ini")));
         Assert.Equal("current-server", File.ReadAllText(
             Path.Combine(result.BackupPath!, "server.ini")));
+    }
+
+    [Fact]
+    public void RestoreSnapshot_WithServerRestoresBothDirectoriesAndPreservesBackup()
+    {
+        using var root = new TestDirectory();
+        var sourceProfile = Path.Combine(root.Path, "source-profile");
+        var sourceSaves = Path.Combine(sourceProfile, "Saves", "Multiplayer");
+        var sourceServer = Path.Combine(sourceProfile, "Server");
+        var targetProfile = Path.Combine(root.Path, "target-profile");
+        var targetSaves = Path.Combine(targetProfile, "Saves", "Multiplayer");
+        var targetServer = Path.Combine(targetProfile, "Server");
+        var snapshots = Path.Combine(root.Path, "snapshots");
+        Directory.CreateDirectory(sourceSaves);
+        Directory.CreateDirectory(sourceServer);
+        Directory.CreateDirectory(targetSaves);
+        Directory.CreateDirectory(targetServer);
+        Directory.CreateDirectory(snapshots);
+        File.WriteAllText(Path.Combine(sourceSaves, "save.bin"), "restored-save");
+        File.WriteAllText(Path.Combine(sourceServer, "server.ini"), "restored-server");
+        File.WriteAllText(Path.Combine(targetSaves, "save.bin"), "current-save");
+        File.WriteAllText(Path.Combine(targetServer, "server.ini"), "current-server");
+
+        var snapshot = new LocalSnapshotService(new TestProcessDetector(false), snapshots)
+            .CreateSnapshot(sourceSaves, sourceServer);
+        Assert.True(snapshot.Succeeded, snapshot.ErrorMessage);
+
+        var result = new LocalSnapshotRestoreService(new TestProcessDetector(false), snapshots)
+            .RestoreSnapshot(targetSaves, snapshot.ArchivePath, snapshot.ManifestPath, targetServer);
+
+        Assert.True(result.Succeeded, result.SafeMessage);
+        Assert.Equal("restored-save", File.ReadAllText(Path.Combine(targetSaves, "save.bin")));
+        Assert.Equal("restored-server", File.ReadAllText(Path.Combine(targetServer, "server.ini")));
+        Assert.Equal("current-save", File.ReadAllText(Path.Combine(result.BackupPath!, "Saves", "Multiplayer", "save.bin")));
+        Assert.Equal("current-server", File.ReadAllText(Path.Combine(result.BackupPath!, "Server", "server.ini")));
     }
 
     [Fact]

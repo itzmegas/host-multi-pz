@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
 using System.Globalization;
 using System.Net.Http;
 using System.Windows;
@@ -69,7 +71,9 @@ public partial class MainWindow : Window
         LocalSnapshotResult result;
         try
         {
-            result = await Task.Run(() => _snapshotService.CreateSnapshot(_saveLocation.MultiplayerSavesPath));
+            result = await Task.Run(() => _snapshotService.CreateSnapshot(
+                _saveLocation.MultiplayerSavesPath,
+                _saveLocation.ServerPath));
         }
         catch
         {
@@ -113,7 +117,8 @@ public partial class MainWindow : Window
         try
         {
             result = await Task.Run(() => _snapshotRestoreService.RestoreLatestSnapshot(
-                _saveLocation.MultiplayerSavesPath));
+                _saveLocation.MultiplayerSavesPath,
+                _saveLocation.ServerPath));
         }
         catch
         {
@@ -165,6 +170,8 @@ public partial class MainWindow : Window
         LanguageLabelText.Text = _text["LanguageLabel"];
         ProfileRootHeadingText.Text = _text["ProfileRootHeading"];
         SavesPathHeadingText.Text = _text["SavesPathHeading"];
+        OpenProfileFolderButton.Content = _text["OpenProfileFolderButton"];
+        OpenSavesFolderButton.Content = _text["OpenSavesFolderButton"];
         ProfileExistsLabelText.Text = _text["ProfileExistsLabel"];
         ProfileRootStatusText.Text = _text[Directory.Exists(_saveLocation.ProfileRoot) ? "Yes" : "No"];
         CreateSnapshotButton.Content = _text["CreateSnapshotButton"];
@@ -186,6 +193,36 @@ public partial class MainWindow : Window
     {
         SnapshotStatusText.Text = _text.Format(_status, _saveLocation.MultiplayerSavesPath);
         RenderActionAvailability();
+    }
+
+    private void OpenProfileFolderButton_Click(object sender, RoutedEventArgs e) =>
+        OpenFolder(_saveLocation.ProfileRoot);
+
+    private void OpenSavesFolderButton_Click(object sender, RoutedEventArgs e) =>
+        OpenFolder(_saveLocation.MultiplayerSavesPath);
+
+    private static void OpenFolder(string path)
+    {
+        try
+        {
+            var folder = Path.GetFullPath(path);
+            while (!Directory.Exists(folder))
+            {
+                var parent = Directory.GetParent(folder)?.FullName;
+                if (parent is null) return;
+                folder = parent;
+            }
+
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = folder,
+                UseShellExecute = true
+            });
+        }
+        catch (ArgumentException) { }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
+        catch (Win32Exception) { }
     }
 
     private async void CloudConnectButton_Click(object sender, RoutedEventArgs e) =>
@@ -221,7 +258,10 @@ public partial class MainWindow : Window
 
         await RunCloudAsync("OperationDownloading", async ct =>
         {
-            var result = await Transfers().DownloadAndRestoreLatestAsync(_saveLocation.MultiplayerSavesPath, ct);
+            var result = await Transfers().DownloadAndRestoreLatestAsync(
+                _saveLocation.MultiplayerSavesPath,
+                _saveLocation.ServerPath,
+                ct);
             _cloudStatus = result.Succeeded
                 ? new(CloudStatusKind.DownloadRestored, result.SnapshotId)
                 : new(CloudStatusKind.Failed);
@@ -244,7 +284,12 @@ public partial class MainWindow : Window
         _operationMessageKey = operationMessageKey;
         RenderCloudStatus();
         try { using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(4)); await operation(timeout.Token); }
-        catch { _cloudStatus = new(CloudStatusKind.Failed); }
+        catch
+        {
+            _cloudStatus = _cloudProviders.Selected.IsConnected
+                ? new(CloudStatusKind.Failed)
+                : new(CloudStatusKind.Disconnected);
+        }
         finally
         {
             _operationGate.End(UiOperation.Cloud);

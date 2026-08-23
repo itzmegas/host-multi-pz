@@ -111,6 +111,13 @@ public sealed class LocalizationTests : IDisposable
         Assert.Equal("Restaurando instantánea...", spanish.Format(new(UiStatusKind.RestoringSnapshot), "unused"));
     }
 
+    [Fact]
+    public void FolderActions_AreLocalized()
+    {
+        Assert.Equal("Open folder", new LocalizedText(AppLanguage.English)["OpenProfileFolderButton"]);
+        Assert.Equal("Abrir carpeta", new LocalizedText(AppLanguage.Spanish)["OpenSavesFolderButton"]);
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_temporaryDirectory))

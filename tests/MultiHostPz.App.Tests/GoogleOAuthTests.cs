@@ -57,6 +57,20 @@ public sealed class GoogleOAuthTests
     }
 
     [Fact]
+    public async Task ExpiredToken_InvalidGrantClearsCachedTokens()
+    {
+        using var directory = new TestDirectory();
+        var store = new GoogleTokenStore(directory.Path, new ReversingProtector());
+        store.Save(new("old", "refresh", DateTimeOffset.UtcNow.AddMinutes(-1)));
+        var http = new HttpClient(new StubHandler(_ => Task.FromResult(Json(HttpStatusCode.BadRequest, "{\"error\":\"invalid_grant\"}"))));
+        var oauth = new GoogleOAuthClient(http, store, new("id", "secret"));
+
+        await Assert.ThrowsAsync<HttpRequestException>(() => oauth.GetAccessTokenAsync(default));
+
+        Assert.Null(store.Load());
+    }
+
+    [Fact]
     public void TokenStore_IsIsolatedAtomicAndFailsClosedForCorruption()
     {
         using var directory = new TestDirectory();

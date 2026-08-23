@@ -219,6 +219,12 @@ public sealed class GoogleDriveSnapshotStore(HttpClient http, GoogleOAuthClient 
         request.Headers.Authorization = new("Bearer", await oauth.GetAccessTokenAsync(ct));
         var response = await http.SendAsync(request, option, ct);
         try { response.EnsureSuccessStatusCode(); return response; }
+        catch (HttpRequestException) when ((int)response.StatusCode is 401 or 403)
+        {
+            oauth.ClearCachedTokens();
+            response.Dispose();
+            throw;
+        }
         catch { response.Dispose(); throw; }
     }
 

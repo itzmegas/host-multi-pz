@@ -42,7 +42,7 @@ public sealed record LocalSnapshotRestoreResult(
 
 public sealed class LocalSnapshotRestoreService
 {
-    private const int SupportedManifestFormatVersion = 1;
+    private const int SupportedManifestFormatVersion = 2;
     private const string SnapshotDirectoryName = "snapshots";
     private const string ApplicationDirectoryName = "MultiHostPz";
 
@@ -64,7 +64,8 @@ public sealed class LocalSnapshotRestoreService
     public LocalSnapshotRestoreResult RestoreSnapshot(
         string? targetDirectory,
         string? archivePath,
-        string? manifestPath)
+        string? manifestPath,
+        string? serverDirectory = null)
     {
         if (!TryResolveExistingDirectory(targetDirectory, out var resolvedTargetDirectory))
         {
@@ -85,7 +86,7 @@ public sealed class LocalSnapshotRestoreService
             return failure!;
         }
 
-        return RestoreValidatedSnapshot(resolvedTargetDirectory, validatedSnapshot!);
+        return RestoreValidatedSnapshot(resolvedTargetDirectory, serverDirectory, validatedSnapshot!);
     }
 
     public LocalSnapshotRestoreResult ValidateSnapshot(string? archivePath, string? manifestPath)
@@ -96,7 +97,9 @@ public sealed class LocalSnapshotRestoreService
             : failure!;
     }
 
-    public LocalSnapshotRestoreResult RestoreLatestSnapshot(string? targetDirectory)
+    public LocalSnapshotRestoreResult RestoreLatestSnapshot(
+        string? targetDirectory,
+        string? serverDirectory = null)
     {
         if (!TryResolveExistingDirectory(targetDirectory, out var resolvedTargetDirectory))
         {
@@ -162,7 +165,7 @@ public sealed class LocalSnapshotRestoreService
                 continue;
             }
 
-            return RestoreValidatedSnapshot(resolvedTargetDirectory, validatedSnapshot!);
+            return RestoreValidatedSnapshot(resolvedTargetDirectory, serverDirectory, validatedSnapshot!);
         }
 
         return LocalSnapshotRestoreResult.Failure(
@@ -246,7 +249,9 @@ public sealed class LocalSnapshotRestoreService
             return false;
         }
 
-        if (manifest.FormatVersion != SupportedManifestFormatVersion)
+        if (manifest.FormatVersion is < 1 or > SupportedManifestFormatVersion
+            || (manifest.FormatVersion == 1 && manifest.ArchiveLayout != LocalSnapshotManifest.LegacyArchiveLayout)
+            || (manifest.FormatVersion == 2 && manifest.ArchiveLayout != LocalSnapshotManifest.SavesAndServerArchiveLayout))
         {
             failure = LocalSnapshotRestoreResult.Failure(
                 RestoreFailureReason.UnsupportedFormat,
@@ -470,6 +475,16 @@ public sealed class LocalSnapshotRestoreService
 
     private static LocalSnapshotRestoreResult RestoreValidatedSnapshot(
         string targetDirectory,
+        string? serverDirectory,
+        ValidatedSnapshot snapshot)
+    {
+        return snapshot.Manifest.ArchiveLayout == LocalSnapshotManifest.SavesAndServerArchiveLayout
+            ? RestoreCombinedSnapshot(targetDirectory, serverDirectory, snapshot)
+            : RestoreSingleDirectorySnapshot(targetDirectory, snapshot);
+    }
+
+    private static LocalSnapshotRestoreResult RestoreSingleDirectorySnapshot(
+        string targetDirectory,
         ValidatedSnapshot snapshot)
     {
         var targetParent = Directory.GetParent(targetDirectory)?.FullName;
@@ -547,6 +562,144 @@ public sealed class LocalSnapshotRestoreService
         finally
         {
             TryDeleteDirectory(temporaryDirectory);
+        }
+    }
+
+    private static LocalSnapshotRestoreResult RestoreCombinedSnapshot(
+        string targetDirectory,
+        string? serverDirectory,
+        ValidatedSnapshot snapshot)
+    {
+        if (string.IsNullOrWhiteSpace(serverDirectory))
+        {
+            return LocalSnapshotRestoreResult.Failure(
+                RestoreFailureReason.TargetMissing,
+                "The server configuration directory is missing.",
+                snapshot.Manifest.SnapshotId);
+        }
+
+        string resolvedServerDirectory;
+        try
+        {
+            resolvedServerDirectory = Path.GetFullPath(serverDirectory);
+        }
+        catch (ArgumentException)
+        {
+            return LocalSnapshotRestoreResult.Failure(
+                RestoreFailureReason.TargetMissing,
+                "The server configuration directory is missing.",
+                snapshot.Manifest.SnapshotId);
+        }
+
+        var targetParent = Directory.GetParent(targetDirectory)?.FullName;
+        var profileRoot = targetParent is null ? null : Directory.GetParent(targetParent)?.FullName;
+        var serverParent = Directory.GetParent(resolvedServerDirectory)?.FullName;
+        if (profileRoot is null
+            || serverParent is null
+            || !string.Equals(profileRoot, serverParent, StringComparison.OrdinalIgnoreCase))
+        {
+            return LocalSnapshotRestoreResult.Failure(
+                RestoreFailureReason.TargetMissing,
+                "The saves and server directories must belong to the same Zomboid profile.",
+                snapshot.Manifest.SnapshotId);
+        }
+
+        var temporaryDirectory = Path.Combine(
+            profileRoot,
+            $".Zomboid.restore-{Guid.NewGuid():N}");
+        var backupPath = Path.Combine(
+            profileRoot,
+            $"MultiHostPz.backup-{DateTimeOffset.UtcNow:yyyyMMddHHmmssfff}-{Guid.NewGuid():N}");
+        var movedDirectories = new List<(string Target, string Backup)>();
+        var installedDirectories = new List<string>();
+
+        try
+        {
+            Directory.CreateDirectory(temporaryDirectory);
+            if (!TryExtractArchive(snapshot, temporaryDirectory, out var extractionFailure))
+            {
+                return extractionFailure!;
+            }
+
+            var extractedSaves = Path.Combine(temporaryDirectory, "Saves", "Multiplayer");
+            var extractedServer = Path.Combine(temporaryDirectory, "Server");
+            if (!Directory.Exists(extractedSaves) || !Directory.Exists(extractedServer))
+            {
+                return LocalSnapshotRestoreResult.Failure(
+                    RestoreFailureReason.RestoreFailed,
+                    "The snapshot does not contain both saves and server configuration.",
+                    snapshot.Manifest.SnapshotId);
+            }
+
+            MoveToBackup(targetDirectory, Path.Combine(backupPath, "Saves", "Multiplayer"), movedDirectories);
+            MoveToBackup(resolvedServerDirectory, Path.Combine(backupPath, "Server"), movedDirectories);
+
+            Directory.Move(extractedSaves, targetDirectory);
+            installedDirectories.Add(targetDirectory);
+            Directory.Move(extractedServer, resolvedServerDirectory);
+            installedDirectories.Add(resolvedServerDirectory);
+
+            return LocalSnapshotRestoreResult.Success(snapshot.Manifest.SnapshotId, backupPath);
+        }
+        catch (IOException)
+        {
+            RollbackCombinedRestore(movedDirectories, installedDirectories);
+            return LocalSnapshotRestoreResult.Failure(
+                RestoreFailureReason.RestoreFailed,
+                "The snapshot could not replace the saves and server directories.",
+                snapshot.Manifest.SnapshotId,
+                Directory.Exists(backupPath) ? backupPath : null);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            RollbackCombinedRestore(movedDirectories, installedDirectories);
+            return LocalSnapshotRestoreResult.Failure(
+                RestoreFailureReason.RestoreFailed,
+                "The snapshot could not replace the saves and server directories.",
+                snapshot.Manifest.SnapshotId,
+                Directory.Exists(backupPath) ? backupPath : null);
+        }
+        finally
+        {
+            TryDeleteDirectory(temporaryDirectory);
+        }
+    }
+
+    private static void MoveToBackup(
+        string targetDirectory,
+        string backupDirectory,
+        ICollection<(string Target, string Backup)> movedDirectories)
+    {
+        if (!Directory.Exists(targetDirectory))
+        {
+            return;
+        }
+
+        Directory.CreateDirectory(Path.GetDirectoryName(backupDirectory)!);
+        Directory.Move(targetDirectory, backupDirectory);
+        movedDirectories.Add((targetDirectory, backupDirectory));
+    }
+
+    private static void RollbackCombinedRestore(
+        IReadOnlyList<(string Target, string Backup)> movedDirectories,
+        IReadOnlyList<string> installedDirectories)
+    {
+        foreach (var installedDirectory in installedDirectories.Reverse())
+        {
+            TryDeleteDirectory(installedDirectory);
+        }
+
+        foreach (var (target, backup) in movedDirectories.Reverse())
+        {
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+                Directory.Move(backup, target);
+            }
+            catch
+            {
+                // Preserve the backup when rollback cannot complete.
+            }
         }
     }
 
