@@ -85,6 +85,8 @@ public sealed class GoogleOAuthClient
     public bool IsConfigured => _credentials is not null;
     public GoogleTokens? Current => _tokens.Load();
 
+    public void ClearCachedTokens() => _tokens.Clear();
+
     public static Uri BuildAuthorizationUri(GoogleClientCredentials credentials, string redirectUri, string verifier, string state)
     {
         var values = new Dictionary<string, string>
@@ -156,11 +158,20 @@ public sealed class GoogleOAuthClient
         var current = Current ?? throw new InvalidOperationException("Google Drive is disconnected.");
         if (current.ExpiresUtc > DateTimeOffset.UtcNow.AddMinutes(1)) return current.AccessToken;
         if (_credentials is null) throw new InvalidOperationException("Google Drive is not configured.");
-        var refreshed = await ExchangeAsync(new()
+        GoogleTokens refreshed;
+        try
         {
-            ["client_id"] = _credentials.ClientId, ["client_secret"] = _credentials.ClientSecret,
-            ["refresh_token"] = current.RefreshToken, ["grant_type"] = "refresh_token"
-        }, cancellationToken, current.RefreshToken, current.AccountName);
+            refreshed = await ExchangeAsync(new()
+            {
+                ["client_id"] = _credentials.ClientId, ["client_secret"] = _credentials.ClientSecret,
+                ["refresh_token"] = current.RefreshToken, ["grant_type"] = "refresh_token"
+            }, cancellationToken, current.RefreshToken, current.AccountName);
+        }
+        catch (HttpRequestException exception) when (exception.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.Unauthorized)
+        {
+            _tokens.Clear();
+            throw;
+        }
         _tokens.Save(refreshed);
         return refreshed.AccessToken;
     }

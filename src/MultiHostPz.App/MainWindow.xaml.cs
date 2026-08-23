@@ -284,7 +284,12 @@ public partial class MainWindow : Window
         _operationMessageKey = operationMessageKey;
         RenderCloudStatus();
         try { using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(4)); await operation(timeout.Token); }
-        catch { _cloudStatus = new(CloudStatusKind.Failed); }
+        catch
+        {
+            _cloudStatus = _cloudProviders.Selected.IsConnected
+                ? new(CloudStatusKind.Failed)
+                : new(CloudStatusKind.Disconnected);
+        }
         finally
         {
             _operationGate.End(UiOperation.Cloud);

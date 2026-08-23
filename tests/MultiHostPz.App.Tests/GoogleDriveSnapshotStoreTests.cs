@@ -131,6 +131,23 @@ public sealed class GoogleDriveSnapshotStoreTests
         Assert.Empty(Directory.EnumerateFiles(directory.Path, "*.tmp"));
     }
 
+    [Theory]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    public async Task ApiAuthorizationFailure_ClearsCachedTokens(HttpStatusCode status)
+    {
+        using var directory = new TestDirectory();
+        var tokens = new GoogleTokenStore(directory.Path, new PassthroughProtector());
+        tokens.Save(new("access", "refresh", DateTimeOffset.UtcNow.AddHours(1)));
+        var http = new HttpClient(new StubHandler(_ => Task.FromResult(new HttpResponseMessage(status))));
+        var oauth = new GoogleOAuthClient(http, tokens, new("id", "secret"));
+        var store = new GoogleDriveSnapshotStore(http, oauth);
+
+        await Assert.ThrowsAsync<HttpRequestException>(() => store.ListAsync(default));
+
+        Assert.Null(tokens.Load());
+    }
+
     private static GoogleDriveSnapshotStore CreateStore(Func<HttpRequestMessage, HttpResponseMessage> handler)
     {
         var tokenDirectory = new TestDirectory();
