@@ -9,7 +9,6 @@
          Background="{StaticResource WindowBackgroundBrush}"
          Foreground="{StaticResource TextPrimaryBrush}"
          FontFamily="Segoe UI"
-         Icon="Assets/ProjectZomboid.ico"
          WindowStartupLocation="CenterScreen">
     <Grid Margin="28,24">
         <Grid.RowDefinitions>

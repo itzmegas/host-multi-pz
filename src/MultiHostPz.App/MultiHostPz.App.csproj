@@ -12,7 +12,6 @@
     <AssemblyVersion>$(Version).0</AssemblyVersion>
     <FileVersion>$(Version).0</FileVersion>
     <Product>MultiHostPz</Product>
-    <ApplicationIcon>Assets\ProjectZomboid.ico</ApplicationIcon>
     <GoogleClientSecretsPath Condition="'$(GoogleClientSecretsPath)' == ''">$(MSBuildProjectDirectory)\..\..\env\google-client-secrets.json</GoogleClientSecretsPath>
     <GoogleClientSecretsPath Condition="'$(GoogleClientSecretsPath)' == '$(MSBuildProjectDirectory)\..\..\env\google-client-secrets.json' and '$(MULTIHOSTPZ_GOOGLE_CLIENT_SECRETS_PATH)' != ''">$(MULTIHOSTPZ_GOOGLE_CLIENT_SECRETS_PATH)</GoogleClientSecretsPath>
   </PropertyGroup>
