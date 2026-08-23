@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
 using System.Globalization;
 using System.Net.Http;
 using System.Windows;
@@ -168,6 +170,8 @@ public partial class MainWindow : Window
         LanguageLabelText.Text = _text["LanguageLabel"];
         ProfileRootHeadingText.Text = _text["ProfileRootHeading"];
         SavesPathHeadingText.Text = _text["SavesPathHeading"];
+        OpenProfileFolderButton.Content = _text["OpenProfileFolderButton"];
+        OpenSavesFolderButton.Content = _text["OpenSavesFolderButton"];
         ProfileExistsLabelText.Text = _text["ProfileExistsLabel"];
         ProfileRootStatusText.Text = _text[Directory.Exists(_saveLocation.ProfileRoot) ? "Yes" : "No"];
         CreateSnapshotButton.Content = _text["CreateSnapshotButton"];
@@ -189,6 +193,36 @@ public partial class MainWindow : Window
     {
         SnapshotStatusText.Text = _text.Format(_status, _saveLocation.MultiplayerSavesPath);
         RenderActionAvailability();
+    }
+
+    private void OpenProfileFolderButton_Click(object sender, RoutedEventArgs e) =>
+        OpenFolder(_saveLocation.ProfileRoot);
+
+    private void OpenSavesFolderButton_Click(object sender, RoutedEventArgs e) =>
+        OpenFolder(_saveLocation.MultiplayerSavesPath);
+
+    private static void OpenFolder(string path)
+    {
+        try
+        {
+            var folder = Path.GetFullPath(path);
+            while (!Directory.Exists(folder))
+            {
+                var parent = Directory.GetParent(folder)?.FullName;
+                if (parent is null) return;
+                folder = parent;
+            }
+
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = folder,
+                UseShellExecute = true
+            });
+        }
+        catch (ArgumentException) { }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
+        catch (Win32Exception) { }
     }
 
     private async void CloudConnectButton_Click(object sender, RoutedEventArgs e) =>

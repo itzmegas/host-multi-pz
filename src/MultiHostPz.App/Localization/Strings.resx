@@ -8,6 +8,8 @@
   <data name="LanguageLabel" xml:space="preserve"><value>Language</value></data>
   <data name="ProfileRootHeading" xml:space="preserve"><value>Detected profile root</value></data>
   <data name="SavesPathHeading" xml:space="preserve"><value>Multiplayer saves path</value></data>
+  <data name="OpenProfileFolderButton" xml:space="preserve"><value>Open folder</value></data>
+  <data name="OpenSavesFolderButton" xml:space="preserve"><value>Open folder</value></data>
   <data name="ProfileExistsLabel" xml:space="preserve"><value>Profile root exists:</value></data>
   <data name="Yes" xml:space="preserve"><value>Yes</value></data>
   <data name="No" xml:space="preserve"><value>No</value></data>

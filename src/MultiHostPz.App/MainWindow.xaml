@@ -57,6 +57,14 @@
                 <StackPanel Margin="0,0,16,0">
                     <TextBlock x:Name="ProfileRootHeadingText" Style="{StaticResource CardHeadingTextStyle}" />
                     <TextBlock x:Name="ProfileRootText" Margin="0,5,0,0" Style="{StaticResource ValueTextStyle}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
+                    <Button x:Name="OpenProfileFolderButton"
+                            Margin="0,8,0,0"
+                            Padding="10,0"
+                            HorizontalAlignment="Left"
+                            MinHeight="30"
+                            FontSize="12"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Click="OpenProfileFolderButton_Click" />
                     <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
                         <Ellipse Width="7" Height="7" Margin="0,0,7,0" Fill="{StaticResource SuccessBrush}" />
                         <TextBlock x:Name="ProfileExistsLabelText" Margin="0,0,4,0" Style="{StaticResource CardHeadingTextStyle}" />
@@ -67,6 +75,14 @@
                 <StackPanel Grid.Column="2" Margin="16,0,0,0">
                     <TextBlock x:Name="SavesPathHeadingText" Style="{StaticResource CardHeadingTextStyle}" />
                     <TextBlock x:Name="MultiplayerSavesPathText" Margin="0,5,0,0" Style="{StaticResource ValueTextStyle}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
+                    <Button x:Name="OpenSavesFolderButton"
+                            Margin="0,8,0,0"
+                            Padding="10,0"
+                            HorizontalAlignment="Left"
+                            MinHeight="30"
+                            FontSize="12"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Click="OpenSavesFolderButton_Click" />
                 </StackPanel>
             </Grid>
         </Border>
